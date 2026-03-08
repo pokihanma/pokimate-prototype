@@ -2,6 +2,16 @@
   "name": "@pokimate/db",
   "version": "0.0.1",
   "private": true,
-  "files": ["migrations"],
-  "description": "SQL migrations and seed data. base.db added in Phase 1."
+  "files": [
+    "migrations"
+  ],
+  "description": "SQL migrations and seed data. base.db added in Phase 1.",
+  "scripts": {
+    "generate-hashes": "node scripts/generate-hashes.js",
+    "build-base-db": "node scripts/build-base-db.js"
+  },
+  "devDependencies": {
+    "bcryptjs": "^2.4.3",
+    "sql.js": "^1.14.1"
+  }
 }

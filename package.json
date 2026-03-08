@@ -9,7 +9,8 @@
     "dev:mobile": "pnpm --filter @pokimate/mobile dev",
     "build:desktop": "pnpm --filter @pokimate/desktop build",
     "build:mobile": "pnpm --filter @pokimate/mobile build",
-    "db:rebuild": "echo Run migrations when Phase 1 is done"
+    "db:rebuild": "pnpm --filter @pokimate/db exec node scripts/build-base-db.js",
+    "db:build-base": "pnpm --filter @pokimate/db run build-base-db"
   },
   "devDependencies": {
     "turbo": "^2.3.0"

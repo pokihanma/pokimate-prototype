@@ -16,4 +16,4 @@ build-mobile:
 	cd apps/mobile && pnpm exec expo run:android
 
 db-rebuild:
-	@echo "Run migrations when Phase 1 is done."
+	cd packages/db && node scripts/build-base-db.js

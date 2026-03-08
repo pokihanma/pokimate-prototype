@@ -82,11 +82,16 @@ All v1 modules: Finance, Bank Import, Groww Import, Habits, Goals, Time, Subscri
 ---
 
 ## Phase 1 — Database Layer (Rust + SQLite)
-**Date:** [fill in]
-**Status:** 🔲 Pending
-**Built:** Complete SQLite schema (001_initial.sql), seed data (002_seed.sql), all Rust Tauri commands, base.db
-**Decisions:** [any decisions made during build]
-**Known issues:** [any deferred items]
+**Date:** 2026-03-09
+**Status:** ✅ Done
+**Built:**
+- **PART A** — `packages/db/migrations/001_initial.sql`: Full schema (users, auth_sessions; pending_changes, conflicts_pending, sync_cursors, app_config, app_logs; finance_accounts, categories, finance_transactions, budgets, debts, subscriptions; inv_assets, inv_holdings, inv_prices; habits, habit_checkins; goals, goal_deposits; time_entries; import_jobs, merchant_rules; notifications, notification_prefs) with all indexes. All money columns BIGINT _minor.
+- **PART B** — `packages/db/migrations/002_seed.sql`: Users (usr_admin001, usr_poki001, usr_demo001) with bcrypt hashes; default Indian expense/income categories; merchant rules (Swiggy/Zomato=Food, Uber/Ola=Transport, Amazon=Shopping, Netflix/Spotify=Entertainment); 6 months demo transactions; 5 demo habits, 3 demo goals, 3 demo subscriptions for demo user; notification_prefs for demo.
+- **PART C** — `apps/desktop/src-tauri/src/db/mod.rs`: init() opens SQLite, applies WAL pragmas (journal_mode=WAL, synchronous=NORMAL, foreign_keys=ON, cache_size=-32000, temp_store=MEMORY), copies base.db from resources to app data dir on first launch.
+- **PART D** — All Tauri command modules: auth_commands, finance_commands, investment_commands, bank_import_commands, habits_commands, goals_commands, time_commands, dashboard_commands, settings_commands, log_commands. Helper `write_pending_change(conn, table, op, row_id, row_data)` used on every write to synced tables.
+- **PART E** — Pre-built `apps/desktop/src-tauri/resources/base.db` via `packages/db/scripts/build-base-db.js` (sql.js). tauri.conf.json bundles `resources/base.db`. Makefile and pnpm scripts: `db-rebuild` / `db:build-base`.
+**Decisions:** bcrypt hashes for seed generated via `packages/db/scripts/generate-hashes.js` (bcryptjs). Device ID for pending_changes set to "desktop" in Phase 1. auth_sessions not synced (no pending_changes on login/logout).
+**Known issues:** Cargo not in PATH in some Windows shells; run `cargo check`/`cargo build` from a dev environment with Rust installed. Login flow can be exercised once Phase 2 (frontend) is in place.
 
 ---
 
