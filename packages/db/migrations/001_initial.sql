@@ -1,0 +1,1 @@
+-- Phase 1: Full schema lives here. Placeholder for Phase 0.

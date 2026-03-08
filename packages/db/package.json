@@ -1,0 +1,7 @@
+{
+  "name": "@pokimate/db",
+  "version": "0.0.1",
+  "private": true,
+  "files": ["migrations"],
+  "description": "SQL migrations and seed data. base.db added in Phase 1."
+}

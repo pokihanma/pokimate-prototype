@@ -1,0 +1,17 @@
+{
+  "name": "pokimate",
+  "private": true,
+  "packageManager": "pnpm@9.14.2",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "dev:desktop": "pnpm --filter @pokimate/desktop dev",
+    "dev:mobile": "pnpm --filter @pokimate/mobile dev",
+    "build:desktop": "pnpm --filter @pokimate/desktop build",
+    "build:mobile": "pnpm --filter @pokimate/mobile build",
+    "db:rebuild": "echo Run migrations when Phase 1 is done"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0"
+  }
+}

@@ -1,0 +1,69 @@
+# PokiMate .cursorrules
+
+You are building PokiMate v4 — a local-first personal life OS.
+The full architecture is in ARCHITECTURE.md. Read it before writing any code.
+
+## ABSOLUTE RULES — Never break these, ever:
+
+1. NO cloud database. NO PostgreSQL. NO remote API. SQLite ONLY via tauri-plugin-sql.
+2. Desktop (Tauri) and Mobile (Expo) are both standalone clients. Neither is a server.
+3. ALL money stored as BIGINT paise (×100). ₹100.50 = 10050. NEVER use Float/Real for money.
+4. ALL money columns end in _minor (e.g. amount_minor, balance_minor, limit_minor).
+5. ALL primary keys: text format 'prefix_' + 12-char hex (e.g. txn_a1b2c3d4e5f6).
+6. ALL tables include: created_at, updated_at, deleted_at (soft delete — never hard delete).
+7. NO Python sidecar. NO separate process. Tauri v2 + Rust handles SQLite directly.
+8. ALL colors use CSS variables. No hardcoded hex in components.
+9. When unsure about any decision → READ ARCHITECTURE.md. Do not improvise.
+10. After completing any task → update CHANGELOG.md.
+
+## Tech Stack (Final — no substitutions):
+- Desktop: Tauri v2 + Rust + Next.js 15 (static export) + Tailwind v4 + shadcn/ui
+- Mobile: Expo SDK 52 + Expo Router v4 + NativeWind v4 + expo-sqlite
+- State: Zustand v5 + TanStack Query v5
+- Charts: Recharts (desktop) + Victory Native (mobile)
+- Money: Native JS BigInt / Rust i64 — never float
+- Sync: Google Drive appDataFolder — JSON changelog + monthly encrypted snapshots
+- Auth: Username + bcrypt password. Google OAuth = Drive sync only, not login.
+
+## Users (seeded in base.db — never recreate these):
+- admin / admin@007 / role: admin
+- poki / pokihanma@007 / role: admin
+- demo / demo007 / role: demo (demo data for testing)
+
+## Sync Rules (critical):
+- EVERY write to a synced table MUST also write a row to pending_changes.
+- Tables NOT synced: app_logs, pending_changes, conflicts_pending, sync_cursors.
+- Soft delete = UPDATE table SET deleted_at = datetime('now') WHERE id = ?
+- ALL queries on synced tables MUST include: WHERE deleted_at IS NULL
+
+## ID Generation Pattern:
+```rust
+// Rust (Tauri commands)
+fn new_id(prefix: &str) -> String {
+    let hex = uuid::Uuid::new_v4().to_simple().to_string()[..12].to_string();
+    format!("{}_{}", prefix, hex)
+}
+```
+```typescript
+// TypeScript (frontend helpers)
+function newId(prefix: string): string {
+  return `${prefix}_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
+}
+```
+
+## Error Handling Rules:
+- Every Tauri command that returns Err() must log to app_logs AND return a user-friendly string.
+- Every invoke() call in the frontend must be in try/catch with a Sonner toast on error.
+- Use invokeWithToast(command, args) wrapper — never raw invoke() in UI code.
+
+## When you make a decision not covered in ARCHITECTURE.md:
+- State it clearly: "ARCHITECTURE.md doesn't cover X, so I'm doing Y because Z"
+- Ask before implementing if it affects other phases.
+
+## Quick Fix Reference:
+- Cursor adds PostgreSQL → STOP. ARCHITECTURE.md Section 1.1: SQLite only.
+- Cursor uses float for money → STOP. Rule 3: ALL money is BIGINT paise.
+- Cursor does hard delete → STOP. Change to: UPDATE SET deleted_at = datetime('now')
+- Cursor hardcodes hex colors → STOP. Replace with var(--variable-name).
+- Cursor adds Python sidecar → STOP. All logic runs in Rust in the Tauri process.
+- Cursor skips pending_changes → STOP. Every write needs write_pending_change().
