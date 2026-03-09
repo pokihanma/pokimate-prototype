@@ -17,8 +17,13 @@
     "dev": "tsc --watch"
   },
   "peerDependencies": {
+    "@tanstack/react-table": "^8.0.0",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@pokimate/shared": "workspace:*",
+    "@tanstack/react-table": "^8.20.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

@@ -73,11 +73,16 @@ All v1 modules: Finance, Bank Import, Groww Import, Habits, Goals, Time, Subscri
 ---
 
 ## Phase 2 — Theme + App Shell + Login
-**Date:** [fill in]
-**Status:** 🔲 Pending
-**Built:** CSS variables theme (light/dark), app layout shell, sidebar nav, login screen, auth flow
-**Decisions:** [any decisions made during build]
-**Known issues:** [any deferred items]
+**Date:** 2026-03-09
+**Status:** ✅ Done
+**Built:**
+- **PART A** — `apps/desktop/src/globals.css`: Full light/dark theme via CSS variables (--background, --foreground, --card, --border, --primary, --muted, --accent, --destructive, --sidebar-*, --chart-1..5, etc.). Tailwind v4 @theme mapping. Global transition for background-color and border-color. Class-based dark (`.dark`) for next-themes.
+- **PART B** — App shell: `(dashboard)/layout.tsx` with Sidebar (240px / 64px collapsible), Topbar (56px), SyncPanel drawer (320px), NotificationDrawer (380px). Sidebar: logo + version badge, nav (Dashboard; Finance accordion — Transactions, Budgets, Debts, Investments; Habits, Goals, Time, Subscriptions, Settings), bottom user block + UserMenu. Topbar: dynamic page title + breadcrumb, SyncStatusBadge (shell states), NotificationBell, ThemeToggle (Light/System/Dark), UserMenu. Route structure: `(auth)/login`, `(dashboard)/*`, root redirect.
+- **PART C** — `packages/ui`: KPICard, MoneyDisplay (paise → formatINR), MoneyInput (rupee input → paise bigint), DataTable (TanStack Table v8, sortable, row click), StatRing (SVG gauge 0–100, color by range), EmptyState, LoadingShimmer, ConfirmDialog. All exported from index; colors via CSS variables.
+- **PART D** — `apps/desktop/src/app/(auth)/login/page.tsx`: Centered card, username/password, show/hide password, Login → auth_login, token in sessionStorage, redirect to /dashboard, "Try Demo" (demo/demo007), inline error message.
+- **PART E** — `apps/desktop/src/store/auth.ts`: Zustand store (user, token, isLoading, login, logout, impersonate placeholder). Hydration in `providers.tsx`: sessionStorage token → auth_get_session → restore. Protected routes: dashboard layout redirects to /login if no token. `packages/shared/src/types.ts`: SessionInfo type. `apps/desktop/src/lib/tauri.ts`: invokeWithToast (invoke + Sonner on error).
+**Decisions:** Token = session_id; use auth_get_session(session_id) for restore. Version badge from APP_VERSION/package.json. SyncStatusBadge and NotificationDrawer are UI shells only (Phase 6/7 for real logic).
+**Known issues:** None.
 
 ---
 
