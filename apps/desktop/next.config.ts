@@ -8,6 +8,9 @@ const nextConfig = {
     unoptimized: true,
   },
   assetPrefix: isProd ? undefined : `http://${internalHost}:3000`,
+  watchOptions: {
+    ignored: ['**/node_modules', 'C:\\*.sys', 'C:\\*.tmp', 'C:\\*.log'],
+  },
 };
 
 export default nextConfig;
