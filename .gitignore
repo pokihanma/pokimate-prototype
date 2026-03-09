@@ -14,7 +14,6 @@ out/
 
 # Tauri
 apps/desktop/src-tauri/target/
-apps/desktop/src-tauri/Cargo.lock
 
 # Expo
 apps/mobile/.expo/
@@ -41,9 +40,9 @@ Thumbs.db
 npm-debug.log*
 pnpm-debug.log*
 
-# SQLite (generated/copy DBs — base.db in packages/db is source of truth)
+# SQLite — ignore local/runtime DBs; initial base.db is committed so app runs on any machine
 *.db
-!packages/db/base.db
+!apps/desktop/src-tauri/resources/base.db
 
 # Test / coverage
 coverage/
