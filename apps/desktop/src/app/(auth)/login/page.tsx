@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
-import { Button } from '@pokimate/ui';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -96,13 +95,13 @@ export default function LoginPage() {
             </p>
           )}
 
-          <Button
+          <button
             type="submit"
             disabled={loading}
             className="w-full rounded-md bg-primary text-primary-foreground py-2 font-medium hover:opacity-90 disabled:opacity-50"
           >
             {loading ? 'Logging in…' : 'Login'}
-          </Button>
+          </button>
         </form>
 
         <p className="mt-4 text-center">

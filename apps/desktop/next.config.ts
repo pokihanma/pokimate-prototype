@@ -4,6 +4,7 @@ const internalHost = process.env.TAURI_DEV_HOST || 'localhost';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  transpilePackages: ['@pokimate/ui', '@pokimate/shared'],
   images: {
     unoptimized: true,
   },
