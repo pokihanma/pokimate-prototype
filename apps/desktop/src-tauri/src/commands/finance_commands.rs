@@ -64,7 +64,7 @@ pub fn finance_create_account(
         params![id, user_id, name, account_type, now],
     ).map_err(|e| e.to_string())?;
     let row_json = serde_json::json!({"id":id,"user_id":user_id,"name":name,"account_type":account_type,"balance_minor":0i64,"currency":"INR","is_primary":0,"is_active":1,"created_at":now,"updated_at":now,"deleted_at":null});
-    pending(conn, "finance_accounts", "INSERT", &id, &row_json.to_string())?;
+    pending(&conn, "finance_accounts", "INSERT", &id, &row_json.to_string())?;
     Ok(FinanceAccount {
         id: id.clone(),
         user_id,

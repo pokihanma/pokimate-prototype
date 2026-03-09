@@ -22,7 +22,7 @@ pub struct DbState {
 
 /// Copy base.db from resources to app data dir if local DB does not exist.
 /// Then open connection, set WAL pragmas, return path for future connections.
-pub fn init<M: Manager>(app: &M) -> Result<DbState, String> {
+pub fn init<M: Manager<R>, R: tauri::Runtime>(app: &M) -> Result<DbState, String> {
     let path_resolver = app.path();
     let app_data_dir = path_resolver
         .app_data_dir()

@@ -2,6 +2,7 @@
 
 use crate::db;
 use rusqlite::params;
+use sha2::Digest;
 use rusqlite::OptionalExtension;
 use serde::{Deserialize, Serialize};
 use tauri::State;
