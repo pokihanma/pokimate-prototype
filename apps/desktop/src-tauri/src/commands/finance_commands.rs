@@ -98,7 +98,7 @@ pub fn finance_update_account(
     if let Some(a) = is_active {
         conn.execute("UPDATE finance_accounts SET is_active = ?1, updated_at = ?2 WHERE id = ?3 AND deleted_at IS NULL", params![a, now, id]).map_err(|e| e.to_string())?;
     }
-    let row: (String,) = conn.query_row("SELECT id FROM finance_accounts WHERE id = ?1", params![id], |r| r.get(0)).map_err(|e| e.to_string())?;
+    let _ = conn.query_row("SELECT id FROM finance_accounts WHERE id = ?1", params![id], |r| r.get::<_, String>(0)).map_err(|e| e.to_string())?;
     let row_json = serde_json::json!({"id":id,"updated_at":now});
     pending(&conn, "finance_accounts", "UPDATE", &id, &row_json.to_string())?;
     Ok(())
