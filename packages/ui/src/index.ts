@@ -1,5 +1,4 @@
 export { Button } from './Button';
-export type { ButtonProps } from './Button';
 export { KPICard } from './KPICard';
 export type { KPICardProps } from './KPICard';
 export { MoneyDisplay } from './MoneyDisplay';

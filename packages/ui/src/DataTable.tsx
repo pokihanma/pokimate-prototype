@@ -64,7 +64,7 @@ export function DataTable<T>({
                     className={h.column.getCanSort() ? 'cursor-pointer select-none flex items-center gap-1' : ''}
                     onClick={h.column.getToggleSortingHandler()}
                   >
-                    {flexRender(h.column.columnDef.header, h.getContext())}
+                    {flexRender(h.column.columnDef.header, h.getContext()) as React.ReactNode}
                     {{
                       asc: ' ↑',
                       desc: ' ↓',
@@ -89,7 +89,7 @@ export function DataTable<T>({
             >
               {row.getVisibleCells().map((cell: Cell<T, unknown>) => (
                 <td key={cell.id} className="px-4 py-3">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  {flexRender(cell.column.columnDef.cell, cell.getContext()) as React.ReactNode}
                 </td>
               ))}
             </tr>
