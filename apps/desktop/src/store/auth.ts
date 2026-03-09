@@ -1,5 +1,3 @@
-'use client';
-
 import { create } from 'zustand';
 import type { SessionInfo } from '@pokimate/shared';
 import { invokeWithToast } from '@/lib/tauri';
@@ -24,7 +22,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isLoading: true,
+
   setUser: (user) => set({ user }),
+
   setToken: (token) => {
     if (typeof window !== 'undefined') {
       if (token) window.sessionStorage.setItem(TOKEN_KEY, token);
@@ -32,8 +32,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     set({ token });
   },
+
   setLoading: (isLoading) => set({ isLoading }),
 
+  // Flat params match auth_login(username, password, device_name) in Rust.
+  // rename_all = "snake_case" is set on the Rust command so JS passes snake_case keys.
   login: async (username, password) => {
     const result = await invokeWithToast<SessionInfo>('auth_login', {
       username,
@@ -54,9 +57,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     get().setToken(null);
   },
 
-  impersonate: () => {
-    // Placeholder for Phase 7 Admin panel
-  },
+  // Placeholder — full implementation in Phase 7 Admin panel.
+  impersonate: () => {},
 
   hydrate: async () => {
     set({ isLoading: true });
@@ -80,6 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         get().setToken(null);
       }
     } catch {
+      // Tauri not available or session expired — clear and show login
       set({ user: null, token: null });
       get().setToken(null);
     } finally {
@@ -88,7 +91,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 }));
 
-// Derived isAdmin as a selector (Zustand doesn't support get in state for derived)
 export function useIsAdmin() {
   return useAuthStore((s) => s.user?.role === 'admin');
 }

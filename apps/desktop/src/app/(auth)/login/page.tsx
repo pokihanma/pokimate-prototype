@@ -21,8 +21,15 @@ export default function LoginPage() {
     try {
       await login(username, password);
       router.replace('/dashboard');
-    } catch {
-      setError('Invalid username or password');
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : String(err);
+      // Show the real error so auth issues are visible; fall back to generic only
+      // when the message is empty or is an internal Tauri serialisation token.
+      if (!raw || raw === '[object Object]') {
+        setError('Login failed. Check username and password.');
+      } else {
+        setError(raw);
+      }
     } finally {
       setLoading(false);
     }

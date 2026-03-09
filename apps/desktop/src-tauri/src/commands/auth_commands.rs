@@ -1,18 +1,12 @@
 // Auth: login, logout, get_session. ARCHITECTURE Section 4.
+// All commands use rename_all = "snake_case" so JS always passes snake_case keys.
 
 use crate::db;
 use rusqlite::params;
 use sha2::Digest;
 use rusqlite::OptionalExtension;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tauri::State;
-
-#[derive(Debug, Deserialize)]
-pub struct LoginPayload {
-    pub username: String,
-    pub password: String,
-    pub device_name: String,
-}
 
 #[derive(Debug, Serialize)]
 pub struct SessionInfo {
@@ -24,16 +18,19 @@ pub struct SessionInfo {
     pub expires_at: String,
 }
 
-#[tauri::command]
+// Flat params — no struct wrapper needed; JS passes { username, password, device_name }
+#[tauri::command(rename_all = "snake_case")]
 pub fn auth_login(
-    payload: LoginPayload,
+    username: String,
+    password: String,
+    device_name: String,
     state: State<'_, db::DbState>,
 ) -> Result<SessionInfo, String> {
     let conn = db::open(&state)?;
     let row = conn
         .query_row(
             "SELECT id, password_hash, display_name, role FROM users WHERE username = ?1 AND deleted_at IS NULL AND is_active = 1",
-            params![payload.username],
+            params![username],
             |r| {
                 Ok((
                     r.get::<_, String>(0)?,
@@ -43,12 +40,13 @@ pub fn auth_login(
                 ))
             },
         )
-        .map_err(|e| format!("User not found or inactive: {}", e))?;
+        .map_err(|_| "Invalid username or password".to_string())?;
 
     let (user_id, password_hash, display_name, role) = row;
-    let valid = bcrypt::verify(&payload.password, &password_hash).map_err(|e| format!("Verify: {}", e))?;
+    let valid = bcrypt::verify(&password, &password_hash)
+        .map_err(|e| format!("Auth error: {}", e))?;
     if !valid {
-        return Err("Invalid password".to_string());
+        return Err("Invalid username or password".to_string());
     }
 
     let session_id = db::new_id("ses");
@@ -60,22 +58,22 @@ pub fn auth_login(
 
     conn.execute(
         "INSERT INTO auth_sessions (id, user_id, token_hash, device_name, created_at, expires_at, revoked_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL)",
-        params![session_id, user_id, token_hash, payload.device_name, now, expires_at_str],
+        params![session_id, user_id, token_hash, device_name, now, expires_at_str],
     )
     .map_err(|e| format!("Create session: {}", e))?;
-    // auth_sessions is NOT in the synced list per ARCHITECTURE — no pending_changes.
+    // auth_sessions is NOT synced per ARCHITECTURE — no pending_changes write.
 
     Ok(SessionInfo {
-        session_id: session_id.clone(),
-        user_id: user_id.clone(),
-        username: payload.username,
+        session_id,
+        user_id,
+        username,
         display_name,
         role,
         expires_at: expires_at_str,
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn auth_logout(session_id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -87,7 +85,7 @@ pub fn auth_logout(session_id: String, state: State<'_, db::DbState>) -> Result<
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn auth_get_session(
     session_id: String,
     state: State<'_, db::DbState>,
