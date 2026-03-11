@@ -269,16 +269,16 @@ fn parse_f64_minor(s: &str) -> i64 {
 }
 
 fn read_xlsx_first_sheet(bytes: &[u8]) -> Vec<Vec<String>> {
-    use calamine::{Reader, open_workbook_from_rs, Xlsx, DataType};
+    use calamine::{Reader, open_workbook_from_rs, Xlsx};
     let cursor = Cursor::new(bytes);
     let mut wb: Xlsx<_> = match open_workbook_from_rs(cursor) { Ok(w) => w, Err(_) => return vec![] };
     let sheet = wb.sheet_names().first().cloned().unwrap_or_default();
     let range = match wb.worksheet_range(&sheet) { Ok(r) => r, Err(_) => return vec![] };
     range.rows().map(|row| {
         row.iter().map(|c| match c {
-            DataType::String(s) => s.trim().to_string(),
-            DataType::Float(f) => f.to_string(),
-            DataType::Int(i) => i.to_string(),
+            calamine::Data::String(s) => s.trim().to_string(),
+            calamine::Data::Float(f) => f.to_string(),
+            calamine::Data::Int(i) => i.to_string(),
             _ => String::new(),
         }).collect()
     }).collect()

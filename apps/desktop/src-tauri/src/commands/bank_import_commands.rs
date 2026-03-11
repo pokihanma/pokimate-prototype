@@ -324,7 +324,7 @@ fn parse_xlsx_rows(
     bytes: &[u8],
     existing_keys: &std::collections::HashSet<String>,
 ) -> (Option<String>, Vec<ParsedBankRow>) {
-    use calamine::{Reader, open_workbook_from_rs, Xlsx, DataType};
+    use calamine::{Reader, open_workbook_from_rs, Xlsx};
     let cursor = Cursor::new(bytes);
     let mut workbook: Xlsx<_> = match open_workbook_from_rs(cursor) {
         Ok(wb) => wb,
@@ -338,7 +338,7 @@ fn parse_xlsx_rows(
     let mut rows_iter = range.rows();
     let header_row: Vec<String> = match rows_iter.next() {
         Some(row) => row.iter().map(|c| match c {
-            DataType::String(s) => s.to_lowercase(),
+            calamine::Data::String(s) => s.to_lowercase(),
             _ => String::new(),
         }).collect(),
         None => return (None, vec![]),
@@ -354,8 +354,8 @@ fn parse_xlsx_rows(
     for (i, row) in rows_iter.enumerate() {
         let get_str = |idx: Option<usize>| -> String {
             idx.and_then(|j| row.get(j)).map(|c| match c {
-                DataType::String(s) => s.trim().to_string(),
-                DataType::Float(f) => f.to_string(),
+                calamine::Data::String(s) => s.trim().to_string(),
+                calamine::Data::Float(f) => f.to_string(),
                 _ => String::new(),
             }).unwrap_or_default()
         };
