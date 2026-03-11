@@ -27,7 +27,7 @@ pub struct ImportJob {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn bank_import_list_jobs(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<ImportJob>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -49,7 +49,7 @@ pub fn bank_import_list_jobs(user_id: String, state: State<'_, db::DbState>) -> 
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn bank_import_create_job(
     user_id: String,
     import_source: String,
@@ -80,7 +80,7 @@ pub fn bank_import_create_job(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn bank_import_update_job_status(
     id: String,
     status: String,
@@ -110,7 +110,7 @@ pub struct MerchantRule {
     pub created_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn bank_import_list_merchant_rules(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<MerchantRule>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -130,7 +130,7 @@ pub fn bank_import_list_merchant_rules(user_id: String, state: State<'_, db::DbS
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn bank_import_create_merchant_rule(
     user_id: String,
     pattern: String,
@@ -161,7 +161,7 @@ pub fn bank_import_create_merchant_rule(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn bank_import_delete_merchant_rule(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     conn.execute("DELETE FROM merchant_rules WHERE id = ?1", params![id]).map_err(|e| e.to_string())?;
@@ -386,7 +386,7 @@ fn parse_xlsx_rows(
     (bank, rows)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn parse_bank_statement(
     user_id: String,
     file_name: String,
@@ -455,7 +455,7 @@ pub struct ConfirmedRow {
     pub skip: bool,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn confirm_bank_import(
     user_id: String,
     job_id: String,

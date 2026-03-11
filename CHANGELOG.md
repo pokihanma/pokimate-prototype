@@ -45,11 +45,23 @@ When adding a new page always add the nav link to:
 `apps/desktop/src/components/shell/Sidebar.tsx`
 
 ### Rule 4 — Tauri command naming (snake_case params)
-All Tauri invoke calls must use **snake_case** parameter keys, not camelCase.
-The backend uses `#[tauri::command]` which expects snake_case by default.
+Tauri v2 **defaults to camelCase** for command parameter names when called from JS.
+To use snake_case params in JS (and Rust), **every** `#[tauri::command]` **MUST** include `rename_all = "snake_case"`.
+Without it you get: `"missing required key userId"` even when frontend sends `user_id`.
 
-**BAD:** `invoke('habits_list', { userId: id })`
-**GOOD:** `invoke('habits_list', { user_id: id })`
+**ALL Rust commands must be written as:**
+```rust
+#[tauri::command(rename_all = "snake_case")]
+pub fn my_command(user_id: String, ...) -> ...
+```
+
+**Frontend invoke must use snake_case:**
+```ts
+invoke('my_command', { user_id: id })   // ✅ snake_case
+invoke('my_command', { userId: id })    // ❌ camelCase — only works WITHOUT rename_all
+```
+
+**Confirmed fixed in:** auth_commands, dashboard_commands (Phase 3), finance_commands, investment_commands, bank_import_commands, habits_commands, goals_commands, time_commands, settings_commands, log_commands (Phase 4 hotfix — all 60 commands).
 
 ### Rule 5 — calamine XLSX parsing (calamine 0.24+)
 In calamine 0.24+, `DataType` was renamed to `Data`. Always use:

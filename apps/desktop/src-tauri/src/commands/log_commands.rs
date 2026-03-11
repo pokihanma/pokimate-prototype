@@ -15,7 +15,7 @@ pub struct AppLogEntry {
     pub created_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn log_insert(
     level: String,
     module: String,
@@ -33,7 +33,7 @@ pub fn log_insert(
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn log_list(
     level: Option<String>,
     module: Option<String>,

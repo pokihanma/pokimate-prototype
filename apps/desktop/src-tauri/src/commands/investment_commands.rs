@@ -28,7 +28,7 @@ pub struct InvAsset {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn inv_list_assets(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<InvAsset>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -52,7 +52,7 @@ pub fn inv_list_assets(user_id: String, state: State<'_, db::DbState>) -> Result
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn inv_create_asset(
     user_id: String,
     symbol: String,
@@ -87,7 +87,7 @@ pub fn inv_create_asset(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn inv_soft_delete_asset(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -111,7 +111,7 @@ pub struct InvHolding {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn inv_list_holdings(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<InvHolding>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -134,7 +134,7 @@ pub fn inv_list_holdings(user_id: String, state: State<'_, db::DbState>) -> Resu
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn inv_create_holding(
     user_id: String,
     asset_id: String,
@@ -167,7 +167,7 @@ pub fn inv_create_holding(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn inv_soft_delete_holding(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -188,7 +188,7 @@ pub struct InvPrice {
     pub source: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn inv_list_prices(asset_id: String, state: State<'_, db::DbState>) -> Result<Vec<InvPrice>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -208,7 +208,7 @@ pub fn inv_list_prices(asset_id: String, state: State<'_, db::DbState>) -> Resul
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn inv_upsert_price(
     asset_id: String,
     price_minor: i64,
@@ -294,7 +294,7 @@ fn col_by_name(headers: &[String], candidates: &[&str]) -> Option<usize> {
     None
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn import_groww_mf(
     user_id: String,
     file_b64: String,
@@ -353,7 +353,7 @@ pub fn import_groww_mf(
     Ok(preview)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn import_groww_stocks(
     user_id: String,
     file_b64: String,

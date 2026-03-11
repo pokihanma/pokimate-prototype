@@ -16,7 +16,7 @@ pub struct AppConfigValue {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn settings_get_config(key: String, state: State<'_, db::DbState>) -> Result<Option<AppConfigValue>, String> {
     let conn = db::open(&state)?;
     let opt = conn.query_row(
@@ -31,7 +31,7 @@ pub fn settings_get_config(key: String, state: State<'_, db::DbState>) -> Result
     Ok(opt)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn settings_set_config(key: String, value: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -57,7 +57,7 @@ pub struct UserProfile {
     pub role: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn settings_get_user_profile(user_id: String, state: State<'_, db::DbState>) -> Result<Option<UserProfile>, String> {
     let conn = db::open(&state)?;
     let opt = conn.query_row(

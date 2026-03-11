@@ -25,7 +25,7 @@ pub struct TimeEntry {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn time_list_entries(
     user_id: String,
     from_date: Option<String>,
@@ -52,7 +52,7 @@ pub fn time_list_entries(
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn time_create_entry(
     user_id: String,
     title: String,
@@ -82,7 +82,7 @@ pub fn time_create_entry(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn time_stop_entry(
     id: String,
     state: State<'_, db::DbState>,
@@ -118,7 +118,7 @@ pub fn time_stop_entry(
     Ok(row)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn time_soft_delete_entry(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();

@@ -28,7 +28,7 @@ pub struct Habit {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn habits_list(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Habit>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -53,7 +53,7 @@ pub fn habits_list(user_id: String, state: State<'_, db::DbState>) -> Result<Vec
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn habits_create(
     user_id: String,
     name: String,
@@ -94,7 +94,7 @@ pub fn habits_create(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn habits_soft_delete(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -115,7 +115,7 @@ pub struct HabitCheckin {
     pub created_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn habits_list_checkins(
     habit_id: String,
     from_date: Option<String>,
@@ -139,7 +139,7 @@ pub fn habits_list_checkins(
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn habits_upsert_checkin(
     habit_id: String,
     user_id: String,

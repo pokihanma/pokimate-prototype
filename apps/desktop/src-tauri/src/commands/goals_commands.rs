@@ -27,7 +27,7 @@ pub struct Goal {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn goals_list(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Goal>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -52,7 +52,7 @@ pub fn goals_list(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn goals_create(
     user_id: String,
     title: String,
@@ -90,7 +90,7 @@ pub fn goals_create(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn goals_soft_delete(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -111,7 +111,7 @@ pub struct GoalDeposit {
     pub created_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn goals_add_deposit(
     goal_id: String,
     user_id: String,
@@ -146,7 +146,7 @@ pub fn goals_add_deposit(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn goals_list_deposits(goal_id: String, state: State<'_, db::DbState>) -> Result<Vec<GoalDeposit>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(

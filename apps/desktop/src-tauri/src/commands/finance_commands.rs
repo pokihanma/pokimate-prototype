@@ -26,7 +26,7 @@ pub struct FinanceAccount {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_list_accounts(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<FinanceAccount>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -49,7 +49,7 @@ pub fn finance_list_accounts(user_id: String, state: State<'_, db::DbState>) -> 
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_create_account(
     user_id: String,
     name: String,
@@ -79,7 +79,7 @@ pub fn finance_create_account(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_update_account(
     id: String,
     name: Option<String>,
@@ -104,7 +104,7 @@ pub fn finance_update_account(
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_soft_delete_account(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -130,7 +130,7 @@ pub struct Category {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_list_categories(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Category>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -154,7 +154,7 @@ pub fn finance_list_categories(user_id: String, state: State<'_, db::DbState>) -
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_create_category(
     user_id: String,
     name: String,
@@ -189,7 +189,7 @@ pub fn finance_create_category(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_soft_delete_category(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -217,7 +217,7 @@ pub struct FinanceTransaction {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_list_transactions(
     user_id: String,
     account_id: Option<String>,
@@ -248,7 +248,7 @@ pub fn finance_list_transactions(
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_create_transaction(
     user_id: String,
     account_id: String,
@@ -286,7 +286,7 @@ pub fn finance_create_transaction(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_update_transaction(
     id: String,
     category_id: Option<String>,
@@ -313,7 +313,7 @@ pub fn finance_update_transaction(
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_soft_delete_transaction(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -337,7 +337,7 @@ pub struct Budget {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_list_budgets(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Budget>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -359,7 +359,7 @@ pub fn finance_list_budgets(user_id: String, state: State<'_, db::DbState>) -> R
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_create_budget(
     user_id: String,
     category_id: String,
@@ -390,7 +390,7 @@ pub fn finance_create_budget(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_update_budget(
     id: String,
     limit_minor: i64,
@@ -408,7 +408,7 @@ pub fn finance_update_budget(
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_soft_delete_budget(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -435,7 +435,7 @@ pub struct Debt {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_list_debts(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Debt>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -460,7 +460,7 @@ pub fn finance_list_debts(user_id: String, state: State<'_, db::DbState>) -> Res
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_create_debt(
     user_id: String,
     name: String,
@@ -500,7 +500,7 @@ pub fn finance_create_debt(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_update_debt(
     id: String,
     name: String,
@@ -520,7 +520,7 @@ pub fn finance_update_debt(
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_soft_delete_debt(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -548,7 +548,7 @@ pub struct Subscription {
     pub updated_at: String,
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_list_subscriptions(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Subscription>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
@@ -574,7 +574,7 @@ pub fn finance_list_subscriptions(user_id: String, state: State<'_, db::DbState>
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_create_subscription(
     user_id: String,
     name: String,
@@ -611,7 +611,7 @@ pub fn finance_create_subscription(
     })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_update_subscription(
     id: String,
     name: String,
@@ -632,7 +632,7 @@ pub fn finance_update_subscription(
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn finance_soft_delete_subscription(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
