@@ -80,6 +80,8 @@ All v1 modules: Finance, Bank Import, Groww Import, Habits, Goals, Time, Subscri
 - `teal` color band (81–95 health score) maps to `var(--chart-5)` (purple) since no teal CSS variable is defined in the theme.
 - Health score history line chart shows empty state until Phase 9 (no history table in schema yet); sheet still renders component breakdown.
 - Net worth trend computed by working backwards from current account balances using cumulative monthly net cash flows.
+**Bug fixes:**
+- `get_dashboard_summary` Tauri command was missing `rename_all = "snake_case"` attribute, causing Tauri v2 to expect `userId` (camelCase) from JS while the frontend correctly sent `user_id` (snake_case). Fixed by changing `#[tauri::command]` → `#[tauri::command(rename_all = "snake_case")]` in `dashboard_commands.rs`, matching the same pattern used in `auth_commands.rs`.
 **Known issues:** Cargo not in PATH in some Windows shells (same as Phase 1). Pre-existing TypeScript errors in `packages/ui` and `packages/shared/zod-schemas.ts` (missing peer type declarations) are not introduced by Phase 3.
 
 ---
