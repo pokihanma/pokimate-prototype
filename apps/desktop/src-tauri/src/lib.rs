@@ -71,7 +71,7 @@ pub fn run() {
             commands::time_commands::time_create_entry,
             commands::time_commands::time_stop_entry,
             commands::time_commands::time_soft_delete_entry,
-            commands::dashboard_commands::dashboard_get_summary,
+            commands::dashboard_commands::get_dashboard_summary,
             commands::settings_commands::settings_get_config,
             commands::settings_commands::settings_set_config,
             commands::settings_commands::settings_get_user_profile,

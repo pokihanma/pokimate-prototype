@@ -64,11 +64,23 @@ All v1 modules: Finance, Bank Import, Groww Import, Habits, Goals, Time, Subscri
 ---
 
 ## Phase 3 — Dashboard + Health Score
-**Date:** [fill in]
-**Status:** 🔲 Pending
-**Built:** Dashboard page, health score algorithm, KPI cards, charts (Recharts), recent activity feed
-**Decisions:** [any decisions made during build]
-**Known issues:** [any deferred items]
+**Date:** 2026-03-11
+**Status:** ✅ Done
+**Built:**
+- **PART A — Rust: `get_dashboard_summary(user_id, month)`** in `apps/desktop/src-tauri/src/commands/dashboard_commands.rs`: Full `DashboardSummary` struct with nested structs for `HealthScore` (6 components), `DashboardKpis`, `NetWorthPoint` (12-month trend), `CashflowPoint` (6-month trend), `ExpenseCategory`, `BudgetStatus`, `HabitToday` (with streak), `GoalProgress`, `UpcomingBill`, `DashboardTransaction`. All 6 health score components (Savings Rate 20pts, Emergency Fund 20pts, Debt Ratio 15pts, Budget Adherence 15pts, Investment Habit 15pts, Goal Progress 15pts) implemented in pure integer arithmetic (no floats). `conflicts_count` and `pending_sync_count` from DB. Replaced old `dashboard_get_summary` stub; updated `lib.rs` handler registration.
+- **PART B — Shared types**: `DashboardSummary` and all nested TypeScript interfaces added to `packages/shared/src/types.ts`.
+- **PART C — TanStack Query provider**: `apps/desktop/src/app/providers.tsx` wrapped with `QueryClientProvider` (staleTime 5 min, refetchOnWindowFocus). `useDashboard(month)` hook in `apps/desktop/src/hooks/useDashboard.ts` → `invokeWithToast('get_dashboard_summary', { user_id, month })`.
+- **PART D — Topbar month picker**: `Topbar.tsx` extended with optional `actions` slot. `TopbarActionsContext.tsx` context provider lets dashboard page inject month picker without layout prop-drilling. `DashboardLayout` updated to use context. `MonthPicker` component in `apps/desktop/src/components/dashboard/MonthPicker.tsx` (chevron prev/next, disables future months).
+- **PART E — Dashboard page** `apps/desktop/src/app/(dashboard)/dashboard/page.tsx`: Row 0 — health ring (animated count-up via Framer Motion useSpring + useTransform) with 5-band color scale, click → `HealthScoreSheet` slide-up with 6 component breakdown + score history line chart. Quick actions: Add Transaction, Check Habit, Start Timer (navigate), Import Bank (visual-only, Phase 4), Sync. Row 1 — 6 KPI cards (Net Worth, Income, Expense, Savings Rate, Investments, Debt). Row 2 — 12-month area chart + expense donut (Recharts, CSS variable fills). Row 3 — 6-month cashflow bar chart + budget progress bars. Row 4 — goals progress, today's habits with streaks, upcoming bills (30 days). Row 5 — recent transactions DataTable (10 rows). Amber conflict banner when `conflicts_count > 0`. Full LoadingShimmer skeleton while fetching. EmptyState for all sections with no data.
+- **Dependencies added to `apps/desktop`**: `@tanstack/react-query ^5.x`, `framer-motion ^12.x`, `recharts ^2.15.x`, `@tanstack/react-table ^8.x`.
+**Decisions:**
+- Route group stays `(dashboard)` (not `(app)`) to match existing Phase 2 shell and routes.
+- Color conflict: `ARCHITECTURE.md` stores category colors as DB hex values; `.cursorrules` requires CSS variables in components. Resolution: raw colors kept in backend payload; dashboard frontend ignores them and uses `var(--chart-1..5)` for all chart fills (frontend mapping layer).
+- `Import Bank` quick action is visual-only (disabled) — no import route exists until Phase 4.
+- `teal` color band (81–95 health score) maps to `var(--chart-5)` (purple) since no teal CSS variable is defined in the theme.
+- Health score history line chart shows empty state until Phase 9 (no history table in schema yet); sheet still renders component breakdown.
+- Net worth trend computed by working backwards from current account balances using cumulative monthly net cash flows.
+**Known issues:** Cargo not in PATH in some Windows shells (same as Phase 1). Pre-existing TypeScript errors in `packages/ui` and `packages/shared/zod-schemas.ts` (missing peer type declarations) are not introduced by Phase 3.
 
 ---
 

@@ -10,6 +10,8 @@ import { UserMenu } from './UserMenu';
 interface TopbarProps {
   syncOpen: () => void;
   notificationOpen: () => void;
+  /** Optional slot rendered between breadcrumb and action buttons — used by dashboard for month picker */
+  actions?: React.ReactNode;
 }
 
 const routeTitles: Record<string, string> = {
@@ -37,7 +39,7 @@ function getBreadcrumb(pathname: string): { path: string; label: string }[] {
   return out;
 }
 
-export function Topbar({ syncOpen, notificationOpen }: TopbarProps) {
+export function Topbar({ syncOpen, notificationOpen, actions }: TopbarProps) {
   const pathname = usePathname();
   const breadcrumb = getBreadcrumb(pathname);
   const title = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].label : 'Dashboard';
@@ -63,11 +65,14 @@ export function Topbar({ syncOpen, notificationOpen }: TopbarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-1">
-        <SyncStatusBadge status="synced" onOpenPanel={syncOpen} />
-        <NotificationBell count={0} onOpen={notificationOpen} />
-        <ThemeToggle />
-        <UserMenu />
+      <div className="flex items-center gap-2">
+        {actions}
+        <div className="flex items-center gap-1">
+          <SyncStatusBadge status="synced" onOpenPanel={syncOpen} />
+          <NotificationBell count={0} onOpen={notificationOpen} />
+          <ThemeToggle />
+          <UserMenu />
+        </div>
       </div>
     </header>
   );
