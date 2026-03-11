@@ -134,7 +134,7 @@ pub struct Category {
 pub fn finance_list_categories(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Category>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
-        "SELECT id, user_id, name, type, color, icon, parent_id, sort_order, is_active, created_at, updated_at FROM categories WHERE user_id = ?1 AND deleted_at IS NULL ORDER BY type, sort_order, name"
+        "SELECT id, user_id, name, type, color, icon, parent_id, sort_order, is_active, created_at, updated_at FROM categories WHERE (user_id = ?1 OR user_id IS NULL) AND deleted_at IS NULL ORDER BY type, sort_order, name"
     ).map_err(|e| e.to_string())?;
     let rows = stmt.query_map(params![user_id], |r| {
         Ok(Category {

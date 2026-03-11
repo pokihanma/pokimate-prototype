@@ -63,6 +63,21 @@ invoke('my_command', { userId: id })    // ❌ camelCase — only works WITHOUT 
 
 **Confirmed fixed in:** auth_commands, dashboard_commands (Phase 3), finance_commands, investment_commands, bank_import_commands, habits_commands, goals_commands, time_commands, settings_commands, log_commands (Phase 4 hotfix — all 60 commands).
 
+### Rule 6 — Seeded / global categories query (MUST follow)
+The `categories` table has two kinds of rows:
+- **Seeded / global** rows (from `002_seed.sql`) have `user_id = NULL`
+- **User-created** rows have `user_id = '<uid>'`
+
+Any SQL query that lists categories **MUST** use:
+```sql
+WHERE (user_id = ?1 OR user_id IS NULL) AND deleted_at IS NULL
+```
+**BAD** (hides all seeded categories → empty dropdown → FOREIGN KEY error on save):
+```sql
+WHERE user_id = ?1 AND deleted_at IS NULL
+```
+**Fixed in:** `finance_list_categories` (Phase 4 hotfix). Apply same rule to any future query on `categories`, `merchant_rules`, or other seeded-lookup tables.
+
 ### Rule 5 — calamine XLSX parsing (calamine 0.24+)
 In calamine 0.24+, `DataType` was renamed to `Data`. Always use:
 - `calamine::Data::String(s)` — not `DataType::String(s)`

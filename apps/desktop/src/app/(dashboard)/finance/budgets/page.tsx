@@ -111,7 +111,7 @@ function BudgetSheet({ open, onOpenChange, categories, editing }: BudgetSheetPro
         </form>
         <div className="px-6 py-4 border-t flex gap-3" style={{ borderColor: 'var(--border)' }}>
           <button type="button" onClick={() => onOpenChange(false)} className="flex-1 py-2 rounded-md border text-sm" style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--background)' }}>Cancel</button>
-          <button onClick={handleSubmit as unknown as React.MouseEventHandler} disabled={submitting || limitPaise === BigInt(0)} className="flex-1 py-2 rounded-md text-sm font-medium text-white disabled:opacity-50" style={{ background: 'var(--primary)' }}>
+          <button onClick={handleSubmit as unknown as React.MouseEventHandler} disabled={submitting || limitPaise === BigInt(0) || (!editing && !categoryId)} className="flex-1 py-2 rounded-md text-sm font-medium text-white disabled:opacity-50" style={{ background: 'var(--primary)' }}>
             {submitting ? 'Saving…' : editing ? 'Save' : 'Add Budget'}
           </button>
         </div>
