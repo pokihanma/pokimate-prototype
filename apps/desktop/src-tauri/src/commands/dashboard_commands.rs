@@ -163,7 +163,7 @@ fn month_range_6(month: &str) -> Vec<String> {
 
 // ── Command ───────────────────────────────────────────────────────────────────
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 pub fn get_dashboard_summary(
     user_id: String,
     month: String, // "YYYY-MM"
