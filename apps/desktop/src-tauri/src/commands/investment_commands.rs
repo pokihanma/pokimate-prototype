@@ -1,9 +1,11 @@
-// Investments: inv_assets, inv_holdings, inv_prices. Every write → pending_changes.
+// Investments: inv_assets, inv_holdings, inv_prices, Groww import. Every write → pending_changes.
 
 use crate::db;
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
 use tauri::State;
+use base64::Engine as _;
+use std::io::Cursor;
 
 const DEVICE_ID: &str = "desktop";
 
@@ -234,4 +236,177 @@ pub fn inv_upsert_price(
         as_of,
         source,
     })
+}
+
+// ---------- Groww Import ----------
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GrowwMFPreviewRow {
+    pub scheme_name: String,
+    pub isin: Option<String>,
+    pub fund_house: Option<String>,
+    pub units: String,
+    pub avg_cost_minor: i64,
+    pub total_invested_minor: i64,
+    pub folio_number: Option<String>,
+    pub imported: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GrowwStockPreviewRow {
+    pub symbol: String,
+    pub name: String,
+    pub isin: Option<String>,
+    pub quantity: String,
+    pub avg_price_minor: i64,
+    pub total_invested_minor: i64,
+    pub imported: bool,
+}
+
+fn parse_f64_minor(s: &str) -> i64 {
+    let clean: String = s.chars().filter(|c| c.is_ascii_digit() || *c == '.').collect();
+    if let Ok(v) = clean.parse::<f64>() { (v * 100.0).round() as i64 } else { 0 }
+}
+
+fn read_xlsx_first_sheet(bytes: &[u8]) -> Vec<Vec<String>> {
+    use calamine::{Reader, open_workbook_from_rs, Xlsx, DataType};
+    let cursor = Cursor::new(bytes);
+    let mut wb: Xlsx<_> = match open_workbook_from_rs(cursor) { Ok(w) => w, Err(_) => return vec![] };
+    let sheet = wb.sheet_names().first().cloned().unwrap_or_default();
+    let range = match wb.worksheet_range(&sheet) { Ok(r) => r, Err(_) => return vec![] };
+    range.rows().map(|row| {
+        row.iter().map(|c| match c {
+            DataType::String(s) => s.trim().to_string(),
+            DataType::Float(f) => f.to_string(),
+            DataType::Int(i) => i.to_string(),
+            _ => String::new(),
+        }).collect()
+    }).collect()
+}
+
+fn col_by_name(headers: &[String], candidates: &[&str]) -> Option<usize> {
+    for c in candidates {
+        let c_lower = c.to_lowercase();
+        if let Some(i) = headers.iter().position(|h| h.to_lowercase().contains(&c_lower)) {
+            return Some(i);
+        }
+    }
+    None
+}
+
+#[tauri::command]
+pub fn import_groww_mf(
+    user_id: String,
+    file_b64: String,
+    state: State<'_, db::DbState>,
+) -> Result<Vec<GrowwMFPreviewRow>, String> {
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(&file_b64)
+        .map_err(|e| format!("Base64 decode: {}", e))?;
+    let sheet = read_xlsx_first_sheet(&bytes);
+    if sheet.is_empty() { return Ok(vec![]); }
+    let headers = &sheet[0];
+    let scheme_col = col_by_name(headers, &["scheme", "fund name", "scheme name"]);
+    let isin_col = col_by_name(headers, &["isin"]);
+    let fund_house_col = col_by_name(headers, &["amc", "fund house", "amcname"]);
+    let units_col = col_by_name(headers, &["units", "quantity", "allotted units"]);
+    let avg_nav_col = col_by_name(headers, &["avg nav", "average nav", "avg cost", "purchase nav"]);
+    let invested_col = col_by_name(headers, &["invested", "total invested", "cost value", "amount invested"]);
+    let folio_col = col_by_name(headers, &["folio"]);
+
+    let conn = db::open(&state)?;
+    let now = db::now_iso();
+    let mut preview = Vec::new();
+
+    for row in sheet.iter().skip(1) {
+        let get = |idx: Option<usize>| idx.and_then(|i| row.get(i)).map(|s| s.as_str()).unwrap_or("");
+        let scheme_name = get(scheme_col).to_string();
+        if scheme_name.is_empty() { continue; }
+        let isin = isin_col.and_then(|i| row.get(i)).filter(|s| !s.is_empty()).cloned();
+        let fund_house = fund_house_col.and_then(|i| row.get(i)).filter(|s| !s.is_empty()).cloned();
+        let units = get(units_col).to_string();
+        let avg_cost_minor = parse_f64_minor(get(avg_nav_col));
+        let total_invested_minor = parse_f64_minor(get(invested_col));
+        let folio_number = folio_col.and_then(|i| row.get(i)).filter(|s| !s.is_empty()).cloned();
+
+        let asset_id = db::new_id("ast");
+        conn.execute(
+            "INSERT OR IGNORE INTO inv_assets (id, user_id, symbol, name, asset_type, isin, fund_house, asset_source, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 'mutual_fund', ?5, ?6, 'groww', ?7, ?7, NULL)",
+            params![asset_id, user_id, scheme_name, scheme_name, isin, fund_house, now],
+        ).map_err(|e| e.to_string())?;
+        let actual_asset_id: String = conn.query_row(
+            "SELECT id FROM inv_assets WHERE user_id = ?1 AND symbol = ?2 AND deleted_at IS NULL LIMIT 1",
+            params![user_id, scheme_name],
+            |r| r.get(0),
+        ).map_err(|e| e.to_string())?;
+
+        let holding_id = db::new_id("hld");
+        conn.execute(
+            "INSERT INTO inv_holdings (id, user_id, asset_id, quantity_str, avg_cost_minor, total_invested_minor, folio_number, last_imported_at, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8, ?8, NULL)",
+            params![holding_id, user_id, actual_asset_id, units, avg_cost_minor, total_invested_minor, folio_number, now],
+        ).map_err(|e| e.to_string())?;
+        let h_json = serde_json::json!({"id":holding_id,"user_id":user_id,"asset_id":actual_asset_id,"quantity_str":units,"avg_cost_minor":avg_cost_minor,"total_invested_minor":total_invested_minor,"created_at":now,"updated_at":now,"deleted_at":null});
+        pending(&conn, "inv_holdings", "INSERT", &holding_id, &h_json.to_string())?;
+
+        preview.push(GrowwMFPreviewRow { scheme_name, isin, fund_house, units, avg_cost_minor, total_invested_minor, folio_number, imported: true });
+    }
+    Ok(preview)
+}
+
+#[tauri::command]
+pub fn import_groww_stocks(
+    user_id: String,
+    file_b64: String,
+    state: State<'_, db::DbState>,
+) -> Result<Vec<GrowwStockPreviewRow>, String> {
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(&file_b64)
+        .map_err(|e| format!("Base64 decode: {}", e))?;
+    let sheet = read_xlsx_first_sheet(&bytes);
+    if sheet.is_empty() { return Ok(vec![]); }
+    let headers = &sheet[0];
+    let symbol_col = col_by_name(headers, &["symbol", "trading symbol", "scrip"]);
+    let name_col = col_by_name(headers, &["company", "name", "scrip name"]);
+    let isin_col = col_by_name(headers, &["isin"]);
+    let qty_col = col_by_name(headers, &["quantity", "qty", "shares"]);
+    let avg_col = col_by_name(headers, &["avg price", "average price", "avg cost", "buy avg"]);
+    let invested_col = col_by_name(headers, &["invested", "total invested", "buy value"]);
+
+    let conn = db::open(&state)?;
+    let now = db::now_iso();
+    let mut preview = Vec::new();
+
+    for row in sheet.iter().skip(1) {
+        let get = |idx: Option<usize>| idx.and_then(|i| row.get(i)).map(|s| s.as_str()).unwrap_or("");
+        let symbol = get(symbol_col).to_string();
+        if symbol.is_empty() { continue; }
+        let name = get(name_col).to_string();
+        let display_name = if name.is_empty() { symbol.clone() } else { name.clone() };
+        let isin = isin_col.and_then(|i| row.get(i)).filter(|s| !s.is_empty()).cloned();
+        let quantity = get(qty_col).to_string();
+        let avg_price_minor = parse_f64_minor(get(avg_col));
+        let total_invested_minor = parse_f64_minor(get(invested_col));
+
+        let asset_id = db::new_id("ast");
+        conn.execute(
+            "INSERT OR IGNORE INTO inv_assets (id, user_id, symbol, name, asset_type, isin, exchange, asset_source, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 'stock', ?5, 'NSE', 'groww', ?6, ?6, NULL)",
+            params![asset_id, user_id, symbol, display_name, isin, now],
+        ).map_err(|e| e.to_string())?;
+        let actual_asset_id: String = conn.query_row(
+            "SELECT id FROM inv_assets WHERE user_id = ?1 AND symbol = ?2 AND deleted_at IS NULL LIMIT 1",
+            params![user_id, symbol],
+            |r| r.get(0),
+        ).map_err(|e| e.to_string())?;
+
+        let holding_id = db::new_id("hld");
+        conn.execute(
+            "INSERT INTO inv_holdings (id, user_id, asset_id, quantity_str, avg_cost_minor, total_invested_minor, folio_number, last_imported_at, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?7, ?7, NULL)",
+            params![holding_id, user_id, actual_asset_id, quantity, avg_price_minor, total_invested_minor, now],
+        ).map_err(|e| e.to_string())?;
+        let h_json = serde_json::json!({"id":holding_id,"user_id":user_id,"asset_id":actual_asset_id,"quantity_str":quantity,"avg_cost_minor":avg_price_minor,"total_invested_minor":total_invested_minor,"created_at":now,"updated_at":now,"deleted_at":null});
+        pending(&conn, "inv_holdings", "INSERT", &holding_id, &h_json.to_string())?;
+
+        preview.push(GrowwStockPreviewRow { symbol, name: display_name, isin, quantity, avg_price_minor, total_invested_minor, imported: true });
+    }
+    Ok(preview)
 }

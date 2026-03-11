@@ -391,6 +391,24 @@ pub fn finance_create_budget(
 }
 
 #[tauri::command]
+pub fn finance_update_budget(
+    id: String,
+    limit_minor: i64,
+    alert_threshold_pct: i32,
+    state: State<'_, db::DbState>,
+) -> Result<(), String> {
+    let conn = db::open(&state)?;
+    let now = db::now_iso();
+    conn.execute(
+        "UPDATE budgets SET limit_minor = ?1, alert_threshold_pct = ?2, updated_at = ?3 WHERE id = ?4 AND deleted_at IS NULL",
+        params![limit_minor, alert_threshold_pct, now, id],
+    ).map_err(|e| e.to_string())?;
+    let row_json = serde_json::json!({"id":id,"limit_minor":limit_minor,"alert_threshold_pct":alert_threshold_pct,"updated_at":now});
+    pending(&conn, "budgets", "UPDATE", &id, &row_json.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn finance_soft_delete_budget(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -483,6 +501,26 @@ pub fn finance_create_debt(
 }
 
 #[tauri::command]
+pub fn finance_update_debt(
+    id: String,
+    name: String,
+    current_balance_minor: i64,
+    interest_rate_bp: i32,
+    min_payment_minor: i64,
+    state: State<'_, db::DbState>,
+) -> Result<(), String> {
+    let conn = db::open(&state)?;
+    let now = db::now_iso();
+    conn.execute(
+        "UPDATE debts SET name = ?1, current_balance_minor = ?2, interest_rate_bp = ?3, min_payment_minor = ?4, updated_at = ?5 WHERE id = ?6 AND deleted_at IS NULL",
+        params![name, current_balance_minor, interest_rate_bp, min_payment_minor, now, id],
+    ).map_err(|e| e.to_string())?;
+    let row_json = serde_json::json!({"id":id,"name":name,"current_balance_minor":current_balance_minor,"interest_rate_bp":interest_rate_bp,"min_payment_minor":min_payment_minor,"updated_at":now});
+    pending(&conn, "debts", "UPDATE", &id, &row_json.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn finance_soft_delete_debt(id: String, state: State<'_, db::DbState>) -> Result<(), String> {
     let conn = db::open(&state)?;
     let now = db::now_iso();
@@ -571,6 +609,27 @@ pub fn finance_create_subscription(
         created_at: now.clone(),
         updated_at: now,
     })
+}
+
+#[tauri::command]
+pub fn finance_update_subscription(
+    id: String,
+    name: String,
+    amount_minor: i64,
+    billing_cycle: String,
+    next_renewal_date: String,
+    reminder_days_before: i32,
+    state: State<'_, db::DbState>,
+) -> Result<(), String> {
+    let conn = db::open(&state)?;
+    let now = db::now_iso();
+    conn.execute(
+        "UPDATE subscriptions SET name = ?1, amount_minor = ?2, billing_cycle = ?3, next_renewal_date = ?4, reminder_days_before = ?5, updated_at = ?6 WHERE id = ?7 AND deleted_at IS NULL",
+        params![name, amount_minor, billing_cycle, next_renewal_date, reminder_days_before, now, id],
+    ).map_err(|e| e.to_string())?;
+    let row_json = serde_json::json!({"id":id,"name":name,"amount_minor":amount_minor,"billing_cycle":billing_cycle,"next_renewal_date":next_renewal_date,"reminder_days_before":reminder_days_before,"updated_at":now});
+    pending(&conn, "subscriptions", "UPDATE", &id, &row_json.to_string())?;
+    Ok(())
 }
 
 #[tauri::command]

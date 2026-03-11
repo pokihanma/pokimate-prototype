@@ -110,6 +110,191 @@ export interface DashboardTransaction {
   category_color: string | null;
 }
 
+// ── Finance types (Phase 4) ───────────────────────────────────────────────────
+
+export interface FinanceAccount {
+  id: string;
+  user_id: string;
+  name: string;
+  account_type: string;
+  balance_minor: number;
+  currency: string;
+  is_primary: number;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Category {
+  id: string;
+  user_id: string;
+  name: string;
+  type_: string;
+  color: string;
+  icon: string;
+  parent_id: string | null;
+  sort_order: number;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FinanceTransaction {
+  id: string;
+  user_id: string;
+  account_id: string;
+  category_id: string | null;
+  type_: string;
+  amount_minor: number;
+  merchant: string | null;
+  note: string | null;
+  txn_date: string;
+  is_recurring: number;
+  import_job_id: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
+
+export interface Budget {
+  id: string;
+  user_id: string;
+  category_id: string;
+  limit_minor: number;
+  period: string;
+  alert_threshold_pct: number;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Debt {
+  id: string;
+  user_id: string;
+  name: string;
+  debt_type: string;
+  principal_minor: number;
+  current_balance_minor: number;
+  interest_rate_bp: number;
+  min_payment_minor: number;
+  due_day: number | null;
+  start_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Subscription {
+  id: string;
+  user_id: string;
+  name: string;
+  amount_minor: number;
+  billing_cycle: string;
+  next_renewal_date: string;
+  category: string | null;
+  notes: string | null;
+  auto_renew: number;
+  reminder_days_before: number;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvAsset {
+  id: string;
+  user_id: string;
+  symbol: string;
+  name: string;
+  asset_type: string;
+  isin: string | null;
+  exchange: string | null;
+  fund_house: string | null;
+  asset_source: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvHolding {
+  id: string;
+  user_id: string;
+  asset_id: string;
+  quantity_str: string;
+  avg_cost_minor: number;
+  total_invested_minor: number;
+  folio_number: string | null;
+  last_imported_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvPrice {
+  id: string;
+  asset_id: string;
+  price_minor: number;
+  day_change_minor: number;
+  day_change_percent_bp: number;
+  as_of: string;
+  source: string;
+}
+
+export interface HoldingWithPnL {
+  holding: InvHolding;
+  asset: InvAsset;
+  current_price_minor: number;
+  current_value_minor: number;
+  pnl_minor: number;
+  pnl_percent_bp: number;
+}
+
+export interface ParsedBankRow {
+  row_index: number;
+  txn_date: string;
+  description: string;
+  amount_minor: number;
+  txn_type: string;
+  status: 'new' | 'duplicate' | 'uncategorized';
+  category_id: string | null;
+}
+
+export interface ParsedStatement {
+  job_id: string;
+  bank_name: string | null;
+  row_count: number;
+  rows: ParsedBankRow[];
+  needs_mapping: boolean;
+  detected_columns: string[];
+}
+
+export interface ConfirmedRow {
+  row_index: number;
+  txn_date: string;
+  description: string;
+  amount_minor: number;
+  txn_type: string;
+  category_id: string | null;
+  skip: boolean;
+}
+
+export interface GrowwMFPreviewRow {
+  scheme_name: string;
+  isin: string | null;
+  fund_house: string | null;
+  units: string;
+  avg_cost_minor: number;
+  total_invested_minor: number;
+  folio_number: string | null;
+  imported: boolean;
+}
+
+export interface GrowwStockPreviewRow {
+  symbol: string;
+  name: string;
+  isin: string | null;
+  quantity: string;
+  avg_price_minor: number;
+  total_invested_minor: number;
+  imported: boolean;
+}
+
 export interface DashboardSummary {
   health_score: HealthScore;
   kpis: DashboardKpis;

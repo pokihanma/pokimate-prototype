@@ -55,11 +55,24 @@ All v1 modules: Finance, Bank Import, Groww Import, Habits, Goals, Time, Subscri
 ---
 
 ## Phase 4 — Finance Module
-**Date:** [fill in]
-**Status:** 🔲 Pending
-**Built:** Transactions CRUD, Budgets, Debts, Investments, Bank Import wizard (HDFC/SBI/ICICI/Axis/Kotak), Groww Import
-**Decisions:** [any decisions made during build]
-**Known issues:** [any deferred items]
+**Date:** 2026-03-11
+**Status:** ✅ Done
+**Built:**
+- **Rust — `finance_commands.rs`**: Added `finance_update_budget(id, limit_minor, alert_threshold_pct)`, `finance_update_debt(id, name, current_balance_minor, interest_rate_bp, min_payment_minor)`, `finance_update_subscription(id, name, amount_minor, billing_cycle, next_renewal_date, reminder_days_before)` — all write `pending_changes` on success.
+- **Rust — `bank_import_commands.rs`**: Added `parse_bank_statement(user_id, file_name, file_b64)` — base64-decodes browser FileReader output, auto-detects bank by column headers (HDFC/SBI/ICICI/Axis/Kotak), deduplicates against existing transactions, creates `import_jobs` row, returns `ParsedStatement`. Added `confirm_bank_import(user_id, job_id, account_id, rows)` — bulk INSERTs `finance_transactions` with `pending_changes` per row.
+- **Rust — `investment_commands.rs`**: Added `import_groww_mf(user_id, file_b64)` and `import_groww_stocks(user_id, file_b64)` — parse Groww XLSX via calamine, upsert `inv_assets` + `inv_holdings`, return preview rows.
+- **Cargo.toml**: Added `calamine = "0.25"`, `base64 = "0.22"`, `csv = "1"`. Not in ARCHITECTURE.md but required for v1 bank import scope (Section 6.1).
+- **`lib.rs`**: Registered all 9 new commands.
+- **Shared types** (`packages/shared/src/types.ts`): Added all finance types including `FinanceTransaction`, `Budget`, `Debt`, `Subscription`, `InvHolding`, `HoldingWithPnL`, `ParsedStatement`, `ConfirmedRow`, `GrowwMFPreviewRow`, `GrowwStockPreviewRow` etc.
+- **TanStack Query hooks** (7 new files in `apps/desktop/src/hooks/`): `useFinanceAccounts`, `useCategories`, `useTransactions`, `useBudgets`, `useDebts`, `useSubscriptions`, `useInvestments` — all with mutations and `invalidateQueries` on success.
+- **Finance components** (`apps/desktop/src/components/finance/`): `TransactionSheet.tsx`, `BankImportWizard.tsx` (4-step wizard), `BudgetCard.tsx` (green/amber/red CSS vars), `DebtCard.tsx` (amortization payoff calculator), `ImportGrowwModal.tsx`, `SubscriptionCard.tsx` (urgency coloring).
+- **Finance pages** (replaced all 5 stubs): `finance/transactions/page.tsx` (filter bar, DataTable, soft-delete badges, import wizard), `finance/budgets/page.tsx` (cards grid, spent from this month's transactions, threshold slider), `finance/debts/page.tsx` (cards grid, total outstanding KPI), `finance/investments/page.tsx` (4 KPIs, holdings table, Recharts donut chart), `subscriptions/page.tsx` (normalized monthly total, urgency-sorted cards).
+**Decisions:**
+- Browser `FileReader.readAsDataURL()` → base64 → Rust (avoids needing `tauri-plugin-dialog`/`tauri-plugin-fs`).
+- `calamine`/`base64`/`csv` crates not in ARCHITECTURE.md Cargo.toml — added as required for v1 scope, flagged in plan.
+- Missing Rust update commands (budget/debt/subscription) were a Phase 1 gap; added following exact same pattern as existing update commands.
+- Investment current price defaults to `avg_cost_minor` (P&L = 0) until live price data is sourced; no live price fetch in v1 per ARCHITECTURE.md.
+**Known issues:** None introduced by Phase 4. Pre-existing Cargo/TypeScript issues from Phase 1 remain.
 
 ---
 
