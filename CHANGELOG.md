@@ -2,6 +2,64 @@
 
 ---
 
+## Known Patterns & Rules (Read Before Every Phase)
+
+> Apply these rules to ALL remaining phases: 5, 6, 7, 8, 9.
+
+### Rule 1 — userId Guard (MUST follow in every page)
+Every page that calls `invoke()` with `userId` MUST:
+1. Get user from auth store: `const user = useAuthStore((s) => s.user)`
+2. Pass `user?.user_id` to the TanStack Query hook (all existing hooks already do this via `enabled: Boolean(userId)`)
+3. Add guard in `queryFn`: `enabled: Boolean(userId)` so query never fires without a userId
+4. Show `<LoadingShimmer />` while `isLoading` is true
+
+**BAD** (causes "missing required key user_id" Tauri error):
+```ts
+// Query fires immediately with empty userId
+useQuery({ queryFn: () => invoke('finance_list_transactions', { user_id: '' }) })
+```
+
+**GOOD** (pattern used in all Phase 4 hooks):
+```ts
+const user = useAuthStore((s) => s.user)
+const userId = user?.user_id ?? ''
+useQuery({
+  queryKey: ['transactions', userId],
+  queryFn: () => invokeWithToast('finance_list_transactions', { user_id: userId }),
+  enabled: Boolean(userId),   // ← guard: never fires without a real userId
+})
+```
+
+### Rule 2 — Every new page checklist
+Before finishing any new page always check:
+- [ ] `userId` guard added (`enabled: Boolean(userId)` in every query hook)
+- [ ] `<LoadingShimmer />` shown while `isLoading` is true
+- [ ] `<EmptyState />` shown when data array is empty
+- [ ] All mutations use `invokeWithToast` (never raw `invoke`) — errors auto-toast
+- [ ] Soft delete used everywhere (never hard delete) — call `*_soft_delete_*` commands
+- [ ] `<ConfirmDialog />` shown before every delete action
+- [ ] New page is added to `Sidebar.tsx` (see Rule 3)
+
+### Rule 3 — New sidebar links
+When adding a new page always add the nav link to:
+`apps/desktop/src/components/shell/Sidebar.tsx`
+
+### Rule 4 — Tauri command naming (snake_case params)
+All Tauri invoke calls must use **snake_case** parameter keys, not camelCase.
+The backend uses `#[tauri::command]` which expects snake_case by default.
+
+**BAD:** `invoke('habits_list', { userId: id })`
+**GOOD:** `invoke('habits_list', { user_id: id })`
+
+### Rule 5 — calamine XLSX parsing (calamine 0.24+)
+In calamine 0.24+, `DataType` was renamed to `Data`. Always use:
+- `calamine::Data::String(s)` — not `DataType::String(s)`
+- `calamine::Data::Float(f)` — not `DataType::Float(f)`
+- `calamine::Data::Int(i)` — not `DataType::Int(i)`
+Do NOT import `DataType` from calamine — it no longer exists.
+
+---
+
 ## v1.0.0 — Release Summary
 **Date:** [fill in]
 **Status:** 🔲 Pending
