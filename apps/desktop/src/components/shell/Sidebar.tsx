@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Wallet,
+  Landmark,
   Receipt,
   PiggyBank,
   CreditCard,
@@ -28,6 +29,7 @@ const navMain = [
 ];
 
 const financeItems = [
+  { href: '/finance/accounts', label: 'Accounts', icon: Landmark },
   { href: '/finance/transactions', label: 'Transactions', icon: Receipt },
   { href: '/finance/budgets', label: 'Budgets', icon: PiggyBank },
   { href: '/finance/debts', label: 'Debts', icon: CreditCard },

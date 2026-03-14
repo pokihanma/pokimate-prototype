@@ -139,6 +139,40 @@ All v1 modules: Finance, Bank Import, Groww Import, Habits, Goals, Time, Subscri
 
 ---
 
+## Phase 4 Hotfix — Accounts Page + Missing Fixes
+**Date:** 2026-03-12
+**Status:** ✅ Done
+**Built / Fixed:**
+
+### MISSING 1 — Accounts page (was never built in Phase 4)
+- **`apps/desktop/src/app/(dashboard)/finance/accounts/page.tsx`** (new file): Full accounts page following Rule 1 (userId guard) and Rule 2 checklist. Features: account cards with name, account_type badge (CSS-variable colored), balance in MoneyDisplay; top-right "+ Add Account" topbar button; slide-in `AccountSheet` form with Name (required), Account Type (select: savings/checking/credit/cash/investment/loan), Bank Name (optional — combined with account name on save as "Bank — Name"), Opening Balance MoneyInput; `ConfirmDialog` before soft-delete; `EmptyState` when no accounts; `LoadingShimmer` while loading.
+- **`apps/desktop/src-tauri/src/commands/finance_commands.rs`** — `finance_create_account` updated to accept `opening_balance_minor: Option<i64>` (defaults to 0 if not provided). INSERT now stores the opening balance.
+- **`apps/desktop/src/hooks/useFinanceAccounts.ts`** — Added `useCreateAccount` and `useDeleteAccount` mutations following the same pattern as `useCreateTransaction`/`useDeleteTransaction`.
+- **`apps/desktop/src/components/shell/Sidebar.tsx`** — Added Accounts link (Landmark icon, label 'Accounts', href '/finance/accounts') as first item under Finance accordion, before Transactions.
+
+**Note — bank_name field:** ARCHITECTURE.md schema for `finance_accounts` does not include a `bank_name` column. The bank name UI field is accepted in the form and combined into the account name on save (e.g. "HDFC — Savings") to avoid a schema migration in this hotfix phase.
+
+**Note — account_type values:** ARCHITECTURE.md `finance_accounts` CHECK constraint only allows: `checking, savings, credit, investment, loan, cash`. The form uses these schema-valid values (user-facing labels: Savings, Checking/Current, Credit Card, Cash, Investment, Loan).
+
+### MISSING 2 — Categories SQL bug
+**ALREADY FIXED** — `finance_list_categories` at line 137 already uses:
+```sql
+WHERE (user_id = ?1 OR user_id IS NULL) AND deleted_at IS NULL ORDER BY type, sort_order, name
+```
+This was corrected in the Phase 4 build. Rule 6 in CHANGELOG documents the correct pattern. No changes needed here.
+
+### MISSING 3 — Transaction form amount input
+**ALREADY CORRECT** — `TransactionSheet.tsx` already imports `MoneyInput` from `@pokimate/ui`, uses `valuePaise={amountPaise}` and `onChange={setAmountPaise}` (bigint), and passes `amount_minor: Number(amountPaise)` to the create command. Field is not disabled or readOnly. No changes needed here.
+
+**Decisions:**
+- `bank_name` stored as prefix to account name (not as separate column) to avoid DB migration in this hotfix phase. Can be split into its own column in a future migration if needed.
+- Account type options in UI match ARCHITECTURE.md schema CHECK constraint exactly.
+- `opening_balance_minor` is optional in the Rust command (defaults to 0) so existing callers (bank import wizard, dashboard) are not broken.
+
+**Known issues:** None introduced by this hotfix.
+
+---
+
 ## Phase 4 — Finance Module
 **Date:** 2026-03-11
 **Status:** ✅ Done

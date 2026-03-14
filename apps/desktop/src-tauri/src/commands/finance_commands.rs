@@ -54,23 +54,25 @@ pub fn finance_create_account(
     user_id: String,
     name: String,
     account_type: String,
+    opening_balance_minor: Option<i64>,
     state: State<'_, db::DbState>,
 ) -> Result<FinanceAccount, String> {
     let conn = db::open(&state)?;
     let id = db::new_id("acc");
     let now = db::now_iso();
+    let balance = opening_balance_minor.unwrap_or(0);
     conn.execute(
-        "INSERT INTO finance_accounts (id, user_id, name, account_type, balance_minor, currency, is_primary, is_active, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, 0, 'INR', 0, 1, ?5, ?5, NULL)",
-        params![id, user_id, name, account_type, now],
+        "INSERT INTO finance_accounts (id, user_id, name, account_type, balance_minor, currency, is_primary, is_active, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, ?5, 'INR', 0, 1, ?6, ?6, NULL)",
+        params![id, user_id, name, account_type, balance, now],
     ).map_err(|e| e.to_string())?;
-    let row_json = serde_json::json!({"id":id,"user_id":user_id,"name":name,"account_type":account_type,"balance_minor":0i64,"currency":"INR","is_primary":0,"is_active":1,"created_at":now,"updated_at":now,"deleted_at":null});
+    let row_json = serde_json::json!({"id":id,"user_id":user_id,"name":name,"account_type":account_type,"balance_minor":balance,"currency":"INR","is_primary":0,"is_active":1,"created_at":now,"updated_at":now,"deleted_at":null});
     pending(&conn, "finance_accounts", "INSERT", &id, &row_json.to_string())?;
     Ok(FinanceAccount {
         id: id.clone(),
         user_id,
         name,
         account_type,
-        balance_minor: 0,
+        balance_minor: balance,
         currency: "INR".to_string(),
         is_primary: 0,
         is_active: 1,
