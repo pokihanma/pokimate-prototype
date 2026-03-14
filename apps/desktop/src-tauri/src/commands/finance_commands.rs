@@ -141,7 +141,8 @@ pub fn finance_list_categories(user_id: String, state: State<'_, db::DbState>) -
     let rows = stmt.query_map(params![user_id], |r| {
         Ok(Category {
             id: r.get(0)?,
-            user_id: r.get(1)?,
+            // seeded/global categories have user_id = NULL in DB; unwrap_or_default → ""
+            user_id: r.get::<_, Option<String>>(1)?.unwrap_or_default(),
             name: r.get(2)?,
             type_: r.get(3)?,
             color: r.get(4)?,

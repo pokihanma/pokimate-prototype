@@ -139,6 +139,33 @@ All v1 modules: Finance, Bank Import, Groww Import, Habits, Goals, Time, Subscri
 
 ---
 
+## Phase 4 Hotfix 2 — Categories Dropdown + MoneyInput Typing Bug
+**Date:** 2026-03-12
+**Status:** ✅ Done
+**Fixed:**
+
+### BUG 1 — Categories dropdown empty (Rust NULL user_id deserialization)
+**Root cause:** The SQL in `finance_list_categories` was already correct (`WHERE (user_id = ?1 OR user_id IS NULL)`), but the Rust **row mapping** was failing silently. Seeded/global categories have `user_id = NULL` in the DB. When rusqlite tried to deserialize a NULL column into `String` via `r.get::<_, String>(1)?`, it returned `FromSqlError::InvalidType`. Because `collect::<Result<Vec<_>, _>>()` propagates the first error, the entire query returned `Err` → frontend received an empty array → all dropdowns appeared empty.
+
+**Fix in `apps/desktop/src-tauri/src/commands/finance_commands.rs`:**
+Changed `user_id: r.get(1)?` to `user_id: r.get::<_, Option<String>>(1)?.unwrap_or_default()` in the `finance_list_categories` query_map. NULL columns now deserialize to `""` (empty string) instead of erroring. All seeded categories (Food, Transport, Health, Shopping, Entertainment, Bills, Salary, etc.) now appear correctly in every dropdown.
+
+### BUG 2 — MoneyInput showing wrong value when typing (e.g. "1.00200" instead of "1200")
+**Root cause:** The old `useEffect` ran every time `valuePaise` changed — including when the user cleared the field (triggering `onChange(BigInt(0))`). This reset `display` back to `"0.00"` on every keystroke that emptied the field, making it impossible to type a fresh amount. The `"1.00200"` symptom occurred when the effect fired mid-type and overwrote the display with a stale formatted value.
+
+**Fix in `packages/ui/src/MoneyInput.tsx`** — complete rewrite:
+- Start with empty string (not `"0.00"`) so field is blank when amount is 0
+- `useEffect` now only updates display when the input is **not focused** (uses `inputRef` + `document.activeElement` check) — no more mid-type resets
+- Stricter `handleChange` regex: `^\d*\.?\d{0,2}$` — rejects invalid characters before setting state, prevents double-decimal entries
+- `handleBlur` formats to `.toFixed(2)` on focus-out (or clears if empty/zero)
+- `Math.round(rupees * 100)` for paise conversion — avoids floating-point imprecision
+- CSS variable styles preserved (`var(--background)`, `var(--foreground)`, `var(--border)`)
+- `MoneyInputProps` interface kept exported (required by `packages/ui/src/index.ts`)
+
+**Known issues:** None introduced by this hotfix.
+
+---
+
 ## Phase 4 Hotfix — Accounts Page + Missing Fixes
 **Date:** 2026-03-12
 **Status:** ✅ Done
