@@ -5,7 +5,7 @@ import { LoadingShimmer, EmptyState, MoneyInput } from '@pokimate/ui';
 import { PiggyBank } from 'lucide-react';
 import type { Budget, Category } from '@pokimate/shared';
 import { useBudgets, useCreateBudget, useUpdateBudget } from '@/hooks/useBudgets';
-import { useCategories } from '@/hooks/useCategories';
+import { useCategories, useCreateCategory } from '@/hooks/useCategories';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useTopbarActions } from '@/components/shell/TopbarActionsContext';
 import { BudgetCard } from '@/components/finance/BudgetCard';
@@ -35,10 +35,16 @@ interface BudgetSheetProps {
 function BudgetSheet({ open, onOpenChange, categories, editing }: BudgetSheetProps) {
   const create = useCreateBudget();
   const update = useUpdateBudget();
+  const createCategory = useCreateCategory();
   const [categoryId, setCategoryId] = React.useState(editing?.category_id ?? '');
   const [limitPaise, setLimitPaise] = React.useState<bigint>(BigInt(editing?.limit_minor ?? 0));
   const [threshold, setThreshold] = React.useState(editing?.alert_threshold_pct ?? 80);
   const [submitting, setSubmitting] = React.useState(false);
+
+  // New category inline form state (budgets are always expense)
+  const [showNewCat, setShowNewCat] = React.useState(false);
+  const [newCatName, setNewCatName] = React.useState('');
+  const [newCatSubmitting, setNewCatSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (editing) {
@@ -50,6 +56,8 @@ function BudgetSheet({ open, onOpenChange, categories, editing }: BudgetSheetPro
       setLimitPaise(BigInt(0));
       setThreshold(80);
     }
+    setShowNewCat(false);
+    setNewCatName('');
   }, [editing]);
 
   const expenseCategories = categories.filter((c) => c.type_ === 'expense');
@@ -69,9 +77,26 @@ function BudgetSheet({ open, onOpenChange, categories, editing }: BudgetSheetPro
     }
   };
 
+  const handleCreateCategory = async () => {
+    if (!newCatName.trim()) return;
+    setNewCatSubmitting(true);
+    try {
+      const created = await createCategory.mutateAsync({
+        name: newCatName.trim(),
+        type: 'expense',
+        color: '#6C63FF',
+      });
+      setCategoryId(created.id);
+      setShowNewCat(false);
+      setNewCatName('');
+    } finally {
+      setNewCatSubmitting(false);
+    }
+  };
+
   if (!open) return null;
   const inputCls = 'w-full rounded-md border px-3 py-2 text-sm outline-none';
-  const inputStyle = { background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' };
+  const inputStyle: React.CSSProperties = { background: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' };
 
   return (
     <>
@@ -89,6 +114,55 @@ function BudgetSheet({ open, onOpenChange, categories, editing }: BudgetSheetPro
                 <option value="">— Select expense category —</option>
                 {expenseCategories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+
+              {/* New Category inline form */}
+              {!showNewCat ? (
+                <button
+                  type="button"
+                  onClick={() => setShowNewCat(true)}
+                  className="text-xs font-medium mt-1"
+                  style={{ color: 'var(--primary)' }}
+                >
+                  + New Category
+                </button>
+              ) : (
+                <div
+                  className="mt-2 rounded-lg border p-3 space-y-2"
+                  style={{ borderColor: 'var(--border)', background: 'var(--muted)' }}
+                >
+                  <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>
+                    New Expense Category
+                  </p>
+                  <input
+                    type="text"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    placeholder="Category name…"
+                    className={inputCls}
+                    style={inputStyle}
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setShowNewCat(false); setNewCatName(''); }}
+                      className="flex-1 py-1.5 rounded text-xs border"
+                      style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--background)' }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCreateCategory}
+                      disabled={newCatSubmitting || !newCatName.trim()}
+                      className="flex-1 py-1.5 rounded text-xs font-medium text-white disabled:opacity-50"
+                      style={{ background: 'var(--primary)' }}
+                    >
+                      {newCatSubmitting ? 'Saving…' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <div className="space-y-1">

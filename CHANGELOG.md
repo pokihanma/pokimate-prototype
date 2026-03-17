@@ -139,6 +139,40 @@ All v1 modules: Finance, Bank Import, Groww Import, Habits, Goals, Time, Subscri
 
 ---
 
+## Phase 4 Hotfix 3 — type_ param fix + New Category inline form
+**Date:** 2026-03-12
+**Status:** ✅ Done
+**Fixed:**
+
+### BUG 1 — Category dropdown empty (re-investigation)
+**Confirmed correct — no code changes needed.** The SQL fix and Rust NULL-deserialization fix from Hotfix 2 are in place:
+- SQL: `WHERE (user_id = ?1 OR user_id IS NULL) AND deleted_at IS NULL`
+- Row mapping: `user_id: r.get::<_, Option<String>>(1)?.unwrap_or_default()`
+
+**Important:** This fix only takes effect when the full Tauri app is compiled and run via `tauri dev`. Running only `pnpm run dev:desktop` (Next.js only) does not execute Rust — Tauri commands are not available and will silently fail. **Run `tauri dev` (or rebuild the Tauri binary) for categories to appear in production.**
+
+### BUG 2 — "missing required key type" error when saving a transaction
+**Root cause:** Serde's `rename_all = "snake_case"` strips trailing underscores from Rust identifiers used to avoid keywords. The Rust command parameter `type_: String` is deserialized from JSON key `"type"` (not `"type_"`). The JS hook was sending `{ type_: 'expense' }` → Tauri couldn't find key `type` → error.
+
+The Income/Expense toggle UI was already correct in `TransactionSheet.tsx` — the bug was purely in the JS → Tauri parameter key name.
+
+**Fixes:**
+- **`apps/desktop/src/hooks/useTransactions.ts`** — Changed `type_: string` to `type: string` in `useCreateTransaction` args interface. The spread `...args` now sends `{ type: 'expense' }` to Tauri, matching what Rust expects.
+- **`apps/desktop/src/components/finance/TransactionSheet.tsx`** — Changed `type_,` (JS shorthand `{ type_: type_ }`) to `type: type_,` in the `createMutation.mutateAsync` call.
+
+**Rule to add:** When a Rust command parameter ends in `_` (e.g. `type_`) to avoid a keyword, the JS must send the key WITHOUT the trailing underscore (e.g. `type`, not `type_`). Applies to all commands with `rename_all = "snake_case"`.
+
+### BUG 3 — Cannot add custom categories
+**Added `useCreateCategory` mutation** to `apps/desktop/src/hooks/useCategories.ts`. Note: sends `type` (not `type_`) for the same reason as BUG 2.
+
+**Added "+ New Category" inline form** to two components:
+- **`apps/desktop/src/components/finance/TransactionSheet.tsx`** — Below the category `<select>`, a "+ New Category" button expands an inline form: category name input + expense/income type toggle (defaults to current transaction type) + Save/Cancel. On save: calls `finance_create_category`, invalidates categories query, auto-selects the new category.
+- **`apps/desktop/src/app/(dashboard)/finance/budgets/page.tsx`** — Same pattern in `BudgetSheet`. New category type is fixed to `'expense'` (budgets only track expenses).
+
+**Known issues:** None introduced by this hotfix.
+
+---
+
 ## Phase 4 Hotfix 2 — Categories Dropdown + MoneyInput Typing Bug
 **Date:** 2026-03-12
 **Status:** ✅ Done

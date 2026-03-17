@@ -33,7 +33,9 @@ export function useCreateTransaction() {
     mutationFn: (args: {
       account_id: string;
       category_id: string | null;
-      type_: string;
+      // Key must be 'type' (not 'type_'): Tauri rename_all="snake_case" strips
+      // the trailing underscore from Rust param `type_` when parsing JSON input.
+      type: string;
       amount_minor: number;
       merchant: string | null;
       note: string | null;
