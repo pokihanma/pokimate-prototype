@@ -234,6 +234,64 @@ This was corrected in the Phase 4 build. Rule 6 in CHANGELOG documents the corre
 
 ---
 
+## Phase 5 — Habits, Goals, Time Tracker
+**Date:** 2026-03-17
+**Status:** ✅ Done
+**Built:**
+
+### CSS Variables
+- **`apps/desktop/src/globals.css`** — Added `--success: #10b981` and `--bg-overlay` (light: `rgba(0,0,0,0.06)`, dark: `rgba(255,255,255,0.08)`) to both `:root` and `.dark` blocks. Referenced in habit heatmap cells and card status colors.
+
+### Shared Types
+- **`packages/shared/src/types.ts`** — Appended `Habit`, `HabitCheckin`, `Goal`, `GoalDeposit`, `TimeEntry` TypeScript interfaces mirroring the DB schema exactly. Money fields as `number` (BIGINT paise from Rust serializes as JS number).
+
+### TanStack Query Hooks (3 new files)
+- **`apps/desktop/src/hooks/useHabits.ts`**: `useHabits()`, `useHabitCheckins(habitId, from, to)`, `useAllHabitCheckins(from, to)`, `useCreateHabit()`, `useUpsertCheckin()`, `useSoftDeleteHabit()` — all with `enabled: Boolean(userId)` guard, `invokeWithToast`, and `onSuccess` query invalidation.
+- **`apps/desktop/src/hooks/useGoals.ts`**: `useGoals()`, `useGoalDeposits(goalId)`, `useCreateGoal()`, `useAddDeposit()`, `useSoftDeleteGoal()` — deposit mutation invalidates both `['goals']` and `['goal_deposits']`.
+- **`apps/desktop/src/hooks/useTime.ts`**: `useTimeEntries(from, to)`, `useCreateEntry()`, `useStopEntry()`, `useSoftDeleteEntry()` — `refetchInterval: 10s` for live timer polling.
+
+### Habits Page (`/habits`)
+- **`apps/desktop/src/app/(dashboard)/habits/page.tsx`** — Full rewrite:
+  - **Card grid** (today's habits): large cards with emoji icon + name + streak counter (🔥 if ≥ 3 days). Border: green = checked today, amber = skipped, gray = pending.
+  - **Checkbox**: click toggles `done`/`missed` → `habits_upsert_checkin` with today's date.
+  - **Right-click / three-dot context menu**: Skip Today / Edit / Delete options via `HabitContextMenu` dropdown.
+  - **Monthly heatmap**: 7-row × 5-week grid of square cells. No data = `var(--bg-overlay)`, done = `var(--success)` at 30/60/100% opacity by completion rate. Day-label header row. Month/year navigation arrows. Tooltip on cell hover showing date + completion count.
+  - **Stats row**: Completion % this month | Current streak | Best streak | Total check-ins — all computed client-side.
+  - **AddHabitSheet**: 24-icon emoji picker (grid), 8 color swatches, Daily/Weekly toggle, Mon–Sun target day chips (multi-select), optional HH:MM reminder time input. Calls `habits_create` → closes → invalidates.
+  - **Delete**: `ConfirmDialog` → `habits_soft_delete`.
+  - All checkins loaded via direct `invokeWithToast` calls to `habits_list_checkins` with empty `habit_id` + `user_id` (lists all habits' checkins for a date range).
+
+### Goals Page (`/goals`)
+- **`apps/desktop/src/app/(dashboard)/goals/page.tsx`** — Full rewrite:
+  - **Goal cards grid**: `StatRing` (from `@pokimate/ui`) with `value = (current/target)*100`, emoji icon, title, `MoneyDisplay` for saved/target amounts, target date chip, days-remaining chip, on-track badge (green "On Track" / amber "Behind" computed from elapsed vs progress ratio).
+  - **GoalDetailSheet** (slide-in on card click): large `StatRing` (120px), MoneyDisplay amounts, days remaining, Recharts `LineChart` of cumulative deposits over time (hidden if < 2 data points), "Add Deposit" form (`MoneyInput` + note textarea + date), deposit timeline (newest first, each row shows date / amount / running total / note).
+  - **AddGoalSheet**: title, `MoneyInput` for target, optional date, 12-icon picker, 8 color swatches.
+  - **Delete**: `ConfirmDialog` → `goals_soft_delete` with trash icon on each card.
+
+### Time Tracker Page (`/time`)
+- **`apps/desktop/src/app/(dashboard)/time/page.tsx`** — Full rewrite:
+  - **Active Timer Banner**: prominent gradient card with title, category, HH:MM:SS counter ticking in real-time via `setInterval(1000)`. Red square "Stop" button → `time_stop_entry` → banner disappears. Shown when any entry has `is_running = 1`.
+  - **Start Timer section**: title input + category select (10 predefined categories) + "Start Timer" button → `time_create_entry` with current ISO timestamp.
+  - **Time entries list** (today + this week, grouped by date, newest day first): each row has colored left bar (per-category color palette), title, category, formatted duration (Xh Ym). Edit icon → inline edit row with title/category inputs + save/cancel. Delete icon → `ConfirmDialog` → `time_soft_delete_entry`.
+  - **Add Past Entry Sheet**: title + category + date + start time + end time, auto-computes and displays duration on end time change. Calls `time_create_entry` with explicit start/end times.
+  - **Weekly summary panel** (right sidebar on lg screens, below on mobile): total hours this week, Recharts `BarChart` (Mon–Sun daily hours), Recharts `PieChart` donut (category breakdown with per-category fill colors).
+
+**Rules followed:**
+- Rule 1 (userId guard): all three hook files use `enabled: Boolean(userId)`.
+- Rule 2 (page checklist): `LoadingShimmer`, `EmptyState`, `invokeWithToast`, `ConfirmDialog`, soft delete — all present in all three pages.
+- Rule 4 (snake_case params): all `invokeWithToast` calls use snake_case keys.
+- Sidebar links for `/habits`, `/goals`, `/time` were already present from Phase 2 — confirmed, no change needed.
+
+**Decisions:**
+- Habit heatmap loads checkins for ALL habits in a date range via `habits_list_checkins` with empty `habit_id` + explicit `user_id`. The Rust command supports this pattern.
+- `time_update_entry` (inline edit) is not in the Phase 1 Rust stubs; the edit call will surface a toast error if the command is missing — no crash. To enable editing, add `time_update_entry` to `time_commands.rs` in a future hotfix.
+- Goal `current_amount_minor` is incremented atomically by `goals_add_deposit` on the Rust side (no frontend math needed).
+- Recharts is already installed from Phase 3 — no new dependencies.
+
+**Known issues:** `time_update_entry` Rust command not yet implemented (Phase 1 gap). Inline edit in time tracker will show a toast error when saving until that command is added. All other functionality is fully operational.
+
+---
+
 ## Phase 4 — Finance Module
 **Date:** 2026-03-11
 **Status:** ✅ Done

@@ -309,3 +309,75 @@ export interface DashboardSummary {
   conflicts_count: number;
   pending_sync_count: number;
 }
+
+// ── Habits types (Phase 5) ────────────────────────────────────────────────────
+
+export interface Habit {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  frequency: string;
+  target_days: string; // JSON array e.g. "[0,1,2,3,4,5,6]"
+  color: string;
+  icon: string;
+  reminder_time: string | null;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface HabitCheckin {
+  id: string;
+  habit_id: string;
+  user_id: string;
+  checkin_date: string; // "YYYY-MM-DD"
+  status: 'done' | 'skip' | 'missed';
+  note: string | null;
+  created_at: string;
+}
+
+// ── Goals types (Phase 5) ─────────────────────────────────────────────────────
+
+export interface Goal {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  target_amount_minor: number;
+  current_amount_minor: number;
+  target_date: string | null;
+  color: string;
+  icon: string;
+  is_active: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface GoalDeposit {
+  id: string;
+  goal_id: string;
+  user_id: string;
+  amount_minor: number;
+  note: string | null;
+  deposit_date: string; // "YYYY-MM-DD"
+  created_at: string;
+}
+
+// ── Time Tracker types (Phase 5) ──────────────────────────────────────────────
+
+export interface TimeEntry {
+  id: string;
+  user_id: string;
+  title: string;
+  category: string | null;
+  start_time: string; // ISO datetime
+  end_time: string | null;
+  duration_minutes: number | null;
+  is_running: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
