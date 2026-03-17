@@ -522,7 +522,7 @@ pub fn get_dashboard_summary(
     ).map_err(|e| e.to_string())?;
 
     let avg_monthly_expense: i64 = conn.query_row(
-        "SELECT COALESCE(AVG(monthly_exp), 0) FROM ( \
+        "SELECT CAST(COALESCE(AVG(monthly_exp), 0) AS INTEGER) FROM ( \
            SELECT strftime('%Y-%m', txn_date) as m, SUM(amount_minor) as monthly_exp \
            FROM finance_transactions \
            WHERE user_id = ?1 AND type = 'expense' AND deleted_at IS NULL \

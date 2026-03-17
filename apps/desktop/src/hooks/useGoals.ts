@@ -33,7 +33,10 @@ export function useCreateGoal() {
     mutationFn: (args: {
       title: string;
       description?: string;
-      target_amount_minor: number;
+      goal_type?: string;
+      target_amount_minor?: number;
+      target_value?: number;
+      unit_label?: string;
       target_date?: string;
       color?: string;
       icon?: string;

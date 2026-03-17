@@ -1,28 +1,31 @@
--- PokiMate v4 — Seed data (ARCHITECTURE Section 3.1, Phase 1)
+-- PokiMate v4 — Seed data (Phase 5 Hotfix + Demo Data)
 -- Password hashes: bcrypt cost 12. Generate with: node scripts/generate-hashes.js
 
--- ========== Users (never plaintext passwords) ==========
+-- ========== Users ==========
 INSERT INTO users (id, username, password_hash, display_name, email, role, is_active, created_at, updated_at, deleted_at) VALUES
 ('usr_admin001', 'admin', '$2a$12$2uhCqgyG5wyl9yNtTv.KO.v5oq7mIXmf9Rj18/UytD9cQHVZQSVeC', 'Admin', 'sudhakaransubramaniam0@gmail.com', 'admin', 1, datetime('now'), datetime('now'), NULL),
 ('usr_poki001', 'poki', '$2a$12$xtLPGCy6G9MsUnXt18hbI.RryZm1RBnNX4kbXhoA/oAq5vE1tYA.2', 'Poki', 'sudhakaransubramaniam0@gmail.com', 'admin', 1, datetime('now'), datetime('now'), NULL),
 ('usr_demo001', 'demo', '$2a$12$hhEZ712ICfXp1paneJ44ce2p52JFx4Grmkp9nElOrh14nt5B71On.', 'Demo User', 'sudhakaransubramaniam0@gmail.com', 'demo', 1, datetime('now'), datetime('now'), NULL);
 
--- ========== Demo user: one primary account ==========
+-- ========== Demo user: 4 accounts ==========
 INSERT INTO finance_accounts (id, user_id, name, account_type, balance_minor, currency, is_primary, is_active, created_at, updated_at, deleted_at) VALUES
-('acc_demo001', 'usr_demo001', 'Primary Account', 'checking', 0, 'INR', 1, 1, datetime('now'), datetime('now'), NULL);
+('acc_demo001', 'usr_demo001', 'SBI Savings Account', 'savings', 4523000, 'INR', 1, 1, datetime('now'), datetime('now'), NULL),
+('acc_demo_hdf', 'usr_demo001', 'HDFC Credit Card', 'credit', -1250000, 'INR', 0, 1, datetime('now'), datetime('now'), NULL),
+('acc_demo_csh', 'usr_demo001', 'Cash Wallet', 'cash', 280000, 'INR', 0, 1, datetime('now'), datetime('now'), NULL),
+('acc_demo_zro', 'usr_demo001', 'Zerodha Trading Account', 'investment', 8500000, 'INR', 0, 1, datetime('now'), datetime('now'), NULL);
 
--- ========== Default Indian expense categories (for demo user) ==========
+-- ========== Expense categories ==========
 INSERT INTO categories (id, user_id, name, type, color, icon, parent_id, sort_order, is_active, created_at, updated_at, deleted_at) VALUES
-('cat_exp001', 'usr_demo001', 'Food', 'expense', '#5B6CF9', 'utensils', NULL, 1, 1, datetime('now'), datetime('now'), NULL),
+('cat_exp001', 'usr_demo001', 'Food & Dining', 'expense', '#5B6CF9', 'utensils', NULL, 1, 1, datetime('now'), datetime('now'), NULL),
 ('cat_exp002', 'usr_demo001', 'Transport', 'expense', '#10B981', 'car', NULL, 2, 1, datetime('now'), datetime('now'), NULL),
 ('cat_exp003', 'usr_demo001', 'Health', 'expense', '#EF4444', 'heart', NULL, 3, 1, datetime('now'), datetime('now'), NULL),
 ('cat_exp004', 'usr_demo001', 'Shopping', 'expense', '#F59E0B', 'shopping-bag', NULL, 4, 1, datetime('now'), datetime('now'), NULL),
 ('cat_exp005', 'usr_demo001', 'Entertainment', 'expense', '#8B5CF6', 'film', NULL, 5, 1, datetime('now'), datetime('now'), NULL),
-('cat_exp006', 'usr_demo001', 'Bills', 'expense', '#6366F1', 'file-text', NULL, 6, 1, datetime('now'), datetime('now'), NULL),
+('cat_exp006', 'usr_demo001', 'Bills & Utilities', 'expense', '#6366F1', 'file-text', NULL, 6, 1, datetime('now'), datetime('now'), NULL),
 ('cat_exp007', 'usr_demo001', 'Education', 'expense', '#EC4899', 'book-open', NULL, 7, 1, datetime('now'), datetime('now'), NULL),
 ('cat_exp008', 'usr_demo001', 'Personal Care', 'expense', '#14B8A6', 'user', NULL, 8, 1, datetime('now'), datetime('now'), NULL);
 
--- ========== Default income categories ==========
+-- ========== Income categories ==========
 INSERT INTO categories (id, user_id, name, type, color, icon, parent_id, sort_order, is_active, created_at, updated_at, deleted_at) VALUES
 ('cat_inc001', 'usr_demo001', 'Salary', 'income', '#10B981', 'briefcase', NULL, 10, 1, datetime('now'), datetime('now'), NULL),
 ('cat_inc002', 'usr_demo001', 'Freelance', 'income', '#10B981', 'laptop', NULL, 11, 1, datetime('now'), datetime('now'), NULL),
@@ -30,7 +33,7 @@ INSERT INTO categories (id, user_id, name, type, color, icon, parent_id, sort_or
 ('cat_inc004', 'usr_demo001', 'Investment Returns', 'income', '#10B981', 'pie-chart', NULL, 13, 1, datetime('now'), datetime('now'), NULL),
 ('cat_inc005', 'usr_demo001', 'Other', 'income', '#10B981', 'circle', NULL, 14, 1, datetime('now'), datetime('now'), NULL);
 
--- ========== Merchant rules: Swiggy/Zomato=Food, Uber/Ola=Transport, Amazon=Shopping, Netflix/Spotify=Entertainment ==========
+-- ========== Merchant rules ==========
 INSERT INTO merchant_rules (id, user_id, pattern, category_id, is_regex, priority, created_at) VALUES
 ('mrul_001', 'usr_demo001', 'Swiggy', 'cat_exp001', 0, 10, datetime('now')),
 ('mrul_002', 'usr_demo001', 'Zomato', 'cat_exp001', 0, 10, datetime('now')),
@@ -40,52 +43,665 @@ INSERT INTO merchant_rules (id, user_id, pattern, category_id, is_regex, priorit
 ('mrul_006', 'usr_demo001', 'Netflix', 'cat_exp005', 0, 10, datetime('now')),
 ('mrul_007', 'usr_demo001', 'Spotify', 'cat_exp005', 0, 10, datetime('now'));
 
--- ========== 6 months demo transactions (demo user, realistic Indian amounts in paise) ==========
--- Sep 2025 - Feb 2026: salary, expenses, a few income entries. amount_minor = paise (₹100 = 10000).
+-- ========== 65 demo transactions — Jan-Mar 2026 (all amounts in paise) ==========
+
+-- January 2026 income
 INSERT INTO finance_transactions (id, user_id, account_id, category_id, type, amount_minor, merchant, note, txn_date, is_recurring, import_job_id, created_at, updated_at, deleted_at) VALUES
-('txn_d1', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 12500000, 'Employer', 'Monthly salary', '2025-09-01', 1, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d2', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 45000, 'Swiggy', 'Lunch', '2025-09-05', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d3', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 120000, 'Ola', 'Cab to office', '2025-09-10', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d4', 'usr_demo001', 'acc_demo001', 'cat_exp005', 'expense', 64900, 'Netflix', 'Monthly', '2025-09-15', 1, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d5', 'usr_demo001', 'acc_demo001', 'cat_exp004', 'expense', 250000, 'Amazon', 'Household', '2025-09-20', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d6', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 12500000, 'Employer', 'Monthly salary', '2025-10-01', 1, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d7', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 38000, 'Zomato', 'Dinner', '2025-10-08', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d8', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 450000, 'Electricity', 'Bill', '2025-10-12', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d9', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 95000, 'Uber', 'Weekly commute', '2025-10-18', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d10', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 12500000, 'Employer', 'Monthly salary', '2025-11-01', 1, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d11', 'usr_demo001', 'acc_demo001', 'cat_exp005', 'expense', 99900, 'Spotify', 'Yearly', '2025-11-02', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d12', 'usr_demo001', 'acc_demo001', 'cat_exp003', 'expense', 85000, 'Apollo', 'Checkup', '2025-11-14', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d13', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 52000, 'Swiggy', 'Family order', '2025-11-22', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d14', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 12500000, 'Employer', 'Monthly salary', '2025-12-01', 1, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d15', 'usr_demo001', 'acc_demo001', 'cat_exp004', 'expense', 189900, 'Amazon', 'Electronics', '2025-12-10', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d16', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 110000, 'Ola', 'Travel', '2025-12-20', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d17', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 12500000, 'Employer', 'Monthly salary', '2026-01-01', 1, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d18', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 320000, 'Broadband', 'Quarterly', '2026-01-05', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d19', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 41000, 'Zomato', 'Lunch', '2026-01-15', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d20', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 12500000, 'Employer', 'Monthly salary', '2026-02-01', 1, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d21', 'usr_demo001', 'acc_demo001', 'cat_exp008', 'expense', 65000, 'Pharmacy', 'Personal care', '2026-02-08', 0, NULL, datetime('now'), datetime('now'), NULL),
-('txn_d22', 'usr_demo001', 'acc_demo001', 'cat_exp007', 'expense', 150000, 'Udemy', 'Course', '2026-02-14', 0, NULL, datetime('now'), datetime('now'), NULL);
+('txn_j01', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 5500000, 'Employer', 'Monthly salary Jan', '2026-01-01', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j02', 'usr_demo001', 'acc_demo001', 'cat_inc002', 'income', 1200000, 'Client XYZ', 'Freelance payment', '2026-01-10', 0, NULL, datetime('now'), datetime('now'), NULL),
+-- January expenses
+('txn_j03', 'usr_demo001', 'acc_demo001', 'cat_exp003', 'expense', 150000, 'Gold Gym', 'Gym membership Jan', '2026-01-02', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j04', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 35000, 'Swiggy', 'Lunch order', '2026-01-03', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j05', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 180000, 'BESCOM', 'Electricity Jan', '2026-01-05', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j06', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 29900, 'Jio', 'Mobile recharge', '2026-01-05', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j07', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 99900, 'ACT Fibernet', 'Internet Jan', '2026-01-08', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j08', 'usr_demo001', 'acc_demo001', 'cat_exp005', 'expense', 64900, 'Netflix', 'Subscription Jan', '2026-01-10', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j09', 'usr_demo001', 'acc_demo001', 'cat_exp005', 'expense', 11900, 'Spotify', 'Subscription Jan', '2026-01-10', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j10', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 200000, 'HPCL', 'Petrol Jan', '2026-01-12', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j11', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 18000, 'Uber', 'Office commute', '2026-01-14', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j12', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 42000, 'Swiggy', 'Dinner order', '2026-01-15', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j13', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 280000, 'BigBasket', 'Monthly groceries', '2026-01-16', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j14', 'usr_demo001', 'acc_demo_hdf', 'cat_exp004', 'expense', 150000, 'Amazon', 'Household items', '2026-01-18', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j15', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 120000, 'Cafe Coffee Day', 'Team lunch', '2026-01-20', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j16', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 22000, 'Uber', 'Airport drop', '2026-01-22', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j17', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 35000, 'BWSSB', 'Water bill', '2026-01-25', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j18', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 120000, 'Barbeque Nation', 'Family dinner', '2026-01-25', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j19', 'usr_demo001', 'acc_demo_hdf', 'cat_exp007', 'expense', 49900, 'Udemy', 'React course', '2026-01-26', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j20', 'usr_demo001', 'acc_demo001', 'cat_exp003', 'expense', 50000, 'Dr. Reddy Clinic', 'Doctor consultation', '2026-01-28', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_j21', 'usr_demo001', 'acc_demo_hdf', 'cat_exp004', 'expense', 80000, 'Decathlon', 'Running shoes', '2026-01-30', 0, NULL, datetime('now'), datetime('now'), NULL);
 
--- ========== 5 demo habits (demo user) ==========
+-- February 2026 income
+INSERT INTO finance_transactions (id, user_id, account_id, category_id, type, amount_minor, merchant, note, txn_date, is_recurring, import_job_id, created_at, updated_at, deleted_at) VALUES
+('txn_f01', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 5500000, 'Employer', 'Monthly salary Feb', '2026-02-01', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f02', 'usr_demo001', 'acc_demo001', 'cat_inc002', 'income', 850000, 'Client ABC', 'Freelance payment', '2026-02-15', 0, NULL, datetime('now'), datetime('now'), NULL),
+-- February expenses
+('txn_f03', 'usr_demo001', 'acc_demo001', 'cat_exp003', 'expense', 150000, 'Gold Gym', 'Gym membership Feb', '2026-02-02', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f04', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 28000, 'Swiggy', 'Breakfast order', '2026-02-02', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f05', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 29000, 'Zomato', 'Lunch delivery', '2026-02-05', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f06', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 165000, 'BESCOM', 'Electricity Feb', '2026-02-05', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f07', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 29900, 'Jio', 'Mobile recharge', '2026-02-05', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f08', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 99900, 'ACT Fibernet', 'Internet Feb', '2026-02-08', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f09', 'usr_demo001', 'acc_demo001', 'cat_exp005', 'expense', 64900, 'Netflix', 'Subscription Feb', '2026-02-10', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f10', 'usr_demo001', 'acc_demo001', 'cat_exp005', 'expense', 11900, 'Spotify', 'Subscription Feb', '2026-02-10', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f11', 'usr_demo001', 'acc_demo_hdf', 'cat_exp004', 'expense', 120000, 'Myntra', 'Clothes shopping', '2026-02-10', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f12', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 180000, 'HPCL', 'Petrol Feb', '2026-02-12', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f13', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 15000, 'Uber', 'Office commute', '2026-02-14', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f14', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 320000, 'BigBasket', 'Monthly groceries', '2026-02-15', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f15', 'usr_demo001', 'acc_demo_hdf', 'cat_exp004', 'expense', 210000, 'Myntra', 'Winter clothes sale', '2026-02-18', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f16', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 85000, 'The Great Kabab Factory', 'Office party', '2026-02-20', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f17', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 50000, 'BMTC', 'Metro passes', '2026-02-22', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f18', 'usr_demo001', 'acc_demo_hdf', 'cat_exp005', 'expense', 45000, 'PVR Cinemas', 'Movie tickets', '2026-02-22', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f19', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 51000, 'Swiggy', 'Late night order', '2026-02-25', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f20', 'usr_demo001', 'acc_demo001', 'cat_exp003', 'expense', 85000, 'Apollo Pharmacy', 'Medicines', '2026-02-26', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f21', 'usr_demo001', 'acc_demo001', 'cat_exp007', 'expense', 35000, 'Crossword', 'Book purchase', '2026-02-28', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_f22', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 19000, 'Uber', 'Late night ride', '2026-02-28', 0, NULL, datetime('now'), datetime('now'), NULL);
+
+-- March 2026 income + expenses (1st to 17th)
+INSERT INTO finance_transactions (id, user_id, account_id, category_id, type, amount_minor, merchant, note, txn_date, is_recurring, import_job_id, created_at, updated_at, deleted_at) VALUES
+('txn_m01', 'usr_demo001', 'acc_demo001', 'cat_inc001', 'income', 5500000, 'Employer', 'Monthly salary Mar', '2026-03-01', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m02', 'usr_demo001', 'acc_demo001', 'cat_exp003', 'expense', 150000, 'Gold Gym', 'Gym membership Mar', '2026-03-01', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m03', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 38000, 'Zomato', 'Dinner delivery', '2026-03-02', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m04', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 45000, 'Swiggy', 'Lunch order', '2026-03-03', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m05', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 210000, 'BESCOM', 'Electricity Mar', '2026-03-05', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m06', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 29900, 'Jio', 'Mobile recharge', '2026-03-05', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m07', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 99900, 'ACT Fibernet', 'Internet Mar', '2026-03-05', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m08', 'usr_demo001', 'acc_demo001', 'cat_exp005', 'expense', 64900, 'Netflix', 'Subscription Mar', '2026-03-06', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m09', 'usr_demo001', 'acc_demo001', 'cat_exp005', 'expense', 11900, 'Spotify', 'Subscription Mar', '2026-03-06', 1, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m10', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 220000, 'HPCL', 'Petrol Mar', '2026-03-07', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m11', 'usr_demo001', 'acc_demo_hdf', 'cat_exp004', 'expense', 85000, 'Amazon', 'Kitchen appliance', '2026-03-07', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m12', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 31000, 'Uber', 'Weekend trip', '2026-03-08', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m13', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 45000, 'Zomato', 'Family dinner', '2026-03-08', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m14', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 250000, 'BigBasket', 'Monthly groceries', '2026-03-10', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m15', 'usr_demo001', 'acc_demo_hdf', 'cat_exp004', 'expense', 320000, 'Amazon', 'Electronics accessories', '2026-03-11', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m16', 'usr_demo001', 'acc_demo001', 'cat_exp001', 'expense', 210000, 'The Fatty Bao', 'Birthday dinner', '2026-03-12', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m17', 'usr_demo001', 'acc_demo_hdf', 'cat_exp004', 'expense', 450000, 'Flipkart', 'Holi sale shopping', '2026-03-13', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m18', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 19000, 'Ola', 'Evening commute', '2026-03-14', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m19', 'usr_demo001', 'acc_demo_hdf', 'cat_exp005', 'expense', 60000, 'INOX', 'Movie outing', '2026-03-15', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m20', 'usr_demo001', 'acc_demo001', 'cat_exp003', 'expense', 32000, 'MedPlus', 'Pharmacy', '2026-03-15', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m21', 'usr_demo001', 'acc_demo001', 'cat_exp002', 'expense', 45000, 'BMTC', 'Monthly metro pass', '2026-03-15', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m22', 'usr_demo001', 'acc_demo001', 'cat_exp006', 'expense', 35000, 'BWSSB', 'Water bill', '2026-03-16', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m23', 'usr_demo001', 'acc_demo001', 'cat_exp007', 'expense', 28000, 'Amazon', 'Programming book', '2026-03-16', 0, NULL, datetime('now'), datetime('now'), NULL),
+('txn_m24', 'usr_demo001', 'acc_demo_hdf', 'cat_exp005', 'expense', 35000, 'BookMyShow', 'Concert tickets', '2026-03-16', 0, NULL, datetime('now'), datetime('now'), NULL);
+
+-- ========== 7 demo habits ==========
 INSERT INTO habits (id, user_id, name, description, frequency, target_days, color, icon, reminder_time, is_active, created_at, updated_at, deleted_at) VALUES
-('hab_d01', 'usr_demo001', 'Morning Walk', '30 min walk', 'daily', '[1,2,3,4,5,6,0]', '#5B6CF9', 'footprints', '07:00', 1, datetime('now'), datetime('now'), NULL),
-('hab_d02', 'usr_demo001', 'Read', 'Read 20 pages', 'daily', '[1,2,3,4,5,6,0]', '#10B981', 'book-open', '21:00', 1, datetime('now'), datetime('now'), NULL),
-('hab_d03', 'usr_demo001', 'Meditate', '10 min', 'daily', '[1,2,3,4,5,6,0]', '#8B5CF6', 'brain', '08:00', 1, datetime('now'), datetime('now'), NULL),
-('hab_d04', 'usr_demo001', 'No Sugar', 'No added sugar', 'daily', '[1,2,3,4,5,6,0]', '#F59E0B', 'heart', NULL, 1, datetime('now'), datetime('now'), NULL),
-('hab_d05', 'usr_demo001', 'Sleep by 11', 'In bed by 11 PM', 'daily', '[0,1,2,3,4,5,6]', '#6366F1', 'moon', NULL, 1, datetime('now'), datetime('now'), NULL);
+('hab_d01', 'usr_demo001', 'Morning Walk', '30 min walk outside', 'daily', '[0,1,2,3,4,5,6]', '#5B6CF9', 'walk', '06:30', 1, datetime('now', '-70 days'), datetime('now'), NULL),
+('hab_d02', 'usr_demo001', 'Read 30 mins', 'Read books or articles', 'daily', '[0,1,2,3,4,5,6]', '#10B981', 'book', '21:00', 1, datetime('now', '-70 days'), datetime('now'), NULL),
+('hab_d03', 'usr_demo001', 'Meditate', '10 min mindfulness', 'daily', '[0,1,2,3,4,5,6]', '#8B5CF6', 'brain', '08:00', 1, datetime('now', '-70 days'), datetime('now'), NULL),
+('hab_d04', 'usr_demo001', 'Drink 8 glasses water', 'Stay hydrated', 'daily', '[0,1,2,3,4,5,6]', '#06B6D4', 'water', '09:00', 1, datetime('now', '-70 days'), datetime('now'), NULL),
+('hab_d05', 'usr_demo001', 'No Junk Food', 'Avoid processed food', 'daily', '[0,1,2,3,4,5,6]', '#EF4444', 'apple', NULL, 1, datetime('now', '-70 days'), datetime('now'), NULL),
+('hab_d06', 'usr_demo001', 'Weekly Workout', 'Strength training session', 'weekly', '[1,3,5]', '#F59E0B', 'dumbbell', '07:00', 1, datetime('now', '-70 days'), datetime('now'), NULL),
+('hab_d07', 'usr_demo001', 'Learn Something New', 'Watch tutorial or read docs', 'daily', '[1,2,3,4,5]', '#84CC16', 'zap', '20:00', 1, datetime('now', '-70 days'), datetime('now'), NULL);
 
--- ========== 3 demo goals (demo user) ==========
-INSERT INTO goals (id, user_id, title, description, target_amount_minor, current_amount_minor, target_date, color, icon, is_active, created_at, updated_at, deleted_at) VALUES
-('goal_d01', 'usr_demo001', 'Emergency Fund', '6 months expense', 60000000, 15000000, '2026-12-31', '#10B981', 'shield', 1, datetime('now'), datetime('now'), NULL),
-('goal_d02', 'usr_demo001', 'Vacation', 'Family trip', 25000000, 5000000, '2026-06-30', '#5B6CF9', 'plane', 1, datetime('now'), datetime('now'), NULL),
-('goal_d03', 'usr_demo001', 'New Laptop', 'MacBook', 15000000, 3000000, '2026-09-01', '#F59E0B', 'laptop', 1, datetime('now'), datetime('now'), NULL);
+-- ========== Habit checkins — 60 days (2026-01-16 to 2026-03-16) ==========
+-- Morning Walk: 85% completion, streak 12 (Mar 5 – Mar 16 done, current day Mar 17 not yet)
+-- Strategy: miss Jan 19, 24, 28, Feb 3, 8, 13, 20, 27, Mar 2 (9 out of 61 = 85%)
+INSERT INTO habit_checkins (id, habit_id, user_id, checkin_date, status, note, created_at) VALUES
+('hci_w_0116', 'hab_d01', 'usr_demo001', '2026-01-16', 'done', NULL, datetime('now')),
+('hci_w_0117', 'hab_d01', 'usr_demo001', '2026-01-17', 'done', NULL, datetime('now')),
+('hci_w_0118', 'hab_d01', 'usr_demo001', '2026-01-18', 'done', NULL, datetime('now')),
+('hci_w_0119', 'hab_d01', 'usr_demo001', '2026-01-19', 'missed', NULL, datetime('now')),
+('hci_w_0120', 'hab_d01', 'usr_demo001', '2026-01-20', 'done', NULL, datetime('now')),
+('hci_w_0121', 'hab_d01', 'usr_demo001', '2026-01-21', 'done', NULL, datetime('now')),
+('hci_w_0122', 'hab_d01', 'usr_demo001', '2026-01-22', 'done', NULL, datetime('now')),
+('hci_w_0123', 'hab_d01', 'usr_demo001', '2026-01-23', 'done', NULL, datetime('now')),
+('hci_w_0124', 'hab_d01', 'usr_demo001', '2026-01-24', 'missed', NULL, datetime('now')),
+('hci_w_0125', 'hab_d01', 'usr_demo001', '2026-01-25', 'done', NULL, datetime('now')),
+('hci_w_0126', 'hab_d01', 'usr_demo001', '2026-01-26', 'done', NULL, datetime('now')),
+('hci_w_0127', 'hab_d01', 'usr_demo001', '2026-01-27', 'done', NULL, datetime('now')),
+('hci_w_0128', 'hab_d01', 'usr_demo001', '2026-01-28', 'missed', NULL, datetime('now')),
+('hci_w_0129', 'hab_d01', 'usr_demo001', '2026-01-29', 'done', NULL, datetime('now')),
+('hci_w_0130', 'hab_d01', 'usr_demo001', '2026-01-30', 'done', NULL, datetime('now')),
+('hci_w_0131', 'hab_d01', 'usr_demo001', '2026-01-31', 'done', NULL, datetime('now')),
+('hci_w_0201', 'hab_d01', 'usr_demo001', '2026-02-01', 'done', NULL, datetime('now')),
+('hci_w_0202', 'hab_d01', 'usr_demo001', '2026-02-02', 'done', NULL, datetime('now')),
+('hci_w_0203', 'hab_d01', 'usr_demo001', '2026-02-03', 'missed', NULL, datetime('now')),
+('hci_w_0204', 'hab_d01', 'usr_demo001', '2026-02-04', 'done', NULL, datetime('now')),
+('hci_w_0205', 'hab_d01', 'usr_demo001', '2026-02-05', 'done', NULL, datetime('now')),
+('hci_w_0206', 'hab_d01', 'usr_demo001', '2026-02-06', 'done', NULL, datetime('now')),
+('hci_w_0207', 'hab_d01', 'usr_demo001', '2026-02-07', 'done', NULL, datetime('now')),
+('hci_w_0208', 'hab_d01', 'usr_demo001', '2026-02-08', 'missed', NULL, datetime('now')),
+('hci_w_0209', 'hab_d01', 'usr_demo001', '2026-02-09', 'done', NULL, datetime('now')),
+('hci_w_0210', 'hab_d01', 'usr_demo001', '2026-02-10', 'done', NULL, datetime('now')),
+('hci_w_0211', 'hab_d01', 'usr_demo001', '2026-02-11', 'done', NULL, datetime('now')),
+('hci_w_0212', 'hab_d01', 'usr_demo001', '2026-02-12', 'done', NULL, datetime('now')),
+('hci_w_0213', 'hab_d01', 'usr_demo001', '2026-02-13', 'missed', NULL, datetime('now')),
+('hci_w_0214', 'hab_d01', 'usr_demo001', '2026-02-14', 'done', NULL, datetime('now')),
+('hci_w_0215', 'hab_d01', 'usr_demo001', '2026-02-15', 'done', NULL, datetime('now')),
+('hci_w_0216', 'hab_d01', 'usr_demo001', '2026-02-16', 'done', NULL, datetime('now')),
+('hci_w_0217', 'hab_d01', 'usr_demo001', '2026-02-17', 'done', NULL, datetime('now')),
+('hci_w_0218', 'hab_d01', 'usr_demo001', '2026-02-18', 'done', NULL, datetime('now')),
+('hci_w_0219', 'hab_d01', 'usr_demo001', '2026-02-19', 'done', NULL, datetime('now')),
+('hci_w_0220', 'hab_d01', 'usr_demo001', '2026-02-20', 'missed', NULL, datetime('now')),
+('hci_w_0221', 'hab_d01', 'usr_demo001', '2026-02-21', 'done', NULL, datetime('now')),
+('hci_w_0222', 'hab_d01', 'usr_demo001', '2026-02-22', 'done', NULL, datetime('now')),
+('hci_w_0223', 'hab_d01', 'usr_demo001', '2026-02-23', 'done', NULL, datetime('now')),
+('hci_w_0224', 'hab_d01', 'usr_demo001', '2026-02-24', 'done', NULL, datetime('now')),
+('hci_w_0225', 'hab_d01', 'usr_demo001', '2026-02-25', 'done', NULL, datetime('now')),
+('hci_w_0226', 'hab_d01', 'usr_demo001', '2026-02-26', 'done', NULL, datetime('now')),
+('hci_w_0227', 'hab_d01', 'usr_demo001', '2026-02-27', 'done', NULL, datetime('now')),
+('hci_w_0228', 'hab_d01', 'usr_demo001', '2026-02-28', 'missed', NULL, datetime('now')),
+('hci_w_0301', 'hab_d01', 'usr_demo001', '2026-03-01', 'done', NULL, datetime('now')),
+('hci_w_0302', 'hab_d01', 'usr_demo001', '2026-03-02', 'missed', NULL, datetime('now')),
+('hci_w_0303', 'hab_d01', 'usr_demo001', '2026-03-03', 'done', NULL, datetime('now')),
+('hci_w_0304', 'hab_d01', 'usr_demo001', '2026-03-04', 'done', NULL, datetime('now')),
+('hci_w_0305', 'hab_d01', 'usr_demo001', '2026-03-05', 'done', NULL, datetime('now')),
+('hci_w_0306', 'hab_d01', 'usr_demo001', '2026-03-06', 'done', NULL, datetime('now')),
+('hci_w_0307', 'hab_d01', 'usr_demo001', '2026-03-07', 'done', NULL, datetime('now')),
+('hci_w_0308', 'hab_d01', 'usr_demo001', '2026-03-08', 'done', NULL, datetime('now')),
+('hci_w_0309', 'hab_d01', 'usr_demo001', '2026-03-09', 'done', NULL, datetime('now')),
+('hci_w_0310', 'hab_d01', 'usr_demo001', '2026-03-10', 'done', NULL, datetime('now')),
+('hci_w_0311', 'hab_d01', 'usr_demo001', '2026-03-11', 'done', NULL, datetime('now')),
+('hci_w_0312', 'hab_d01', 'usr_demo001', '2026-03-12', 'done', NULL, datetime('now')),
+('hci_w_0313', 'hab_d01', 'usr_demo001', '2026-03-13', 'done', NULL, datetime('now')),
+('hci_w_0314', 'hab_d01', 'usr_demo001', '2026-03-14', 'done', NULL, datetime('now')),
+('hci_w_0315', 'hab_d01', 'usr_demo001', '2026-03-15', 'done', NULL, datetime('now')),
+('hci_w_0316', 'hab_d01', 'usr_demo001', '2026-03-16', 'done', NULL, datetime('now')),
+('hci_w_0317', 'hab_d01', 'usr_demo001', '2026-03-17', 'done', NULL, datetime('now'));
 
--- ========== 3 demo subscriptions (demo user) ==========
+-- Read 30 mins: 70% completion, streak 5 (Mar 13-17)
+INSERT INTO habit_checkins (id, habit_id, user_id, checkin_date, status, note, created_at) VALUES
+('hci_r_0116', 'hab_d02', 'usr_demo001', '2026-01-16', 'done', NULL, datetime('now')),
+('hci_r_0117', 'hab_d02', 'usr_demo001', '2026-01-17', 'missed', NULL, datetime('now')),
+('hci_r_0118', 'hab_d02', 'usr_demo001', '2026-01-18', 'done', NULL, datetime('now')),
+('hci_r_0119', 'hab_d02', 'usr_demo001', '2026-01-19', 'done', NULL, datetime('now')),
+('hci_r_0120', 'hab_d02', 'usr_demo001', '2026-01-20', 'missed', NULL, datetime('now')),
+('hci_r_0121', 'hab_d02', 'usr_demo001', '2026-01-21', 'done', NULL, datetime('now')),
+('hci_r_0122', 'hab_d02', 'usr_demo001', '2026-01-22', 'done', NULL, datetime('now')),
+('hci_r_0123', 'hab_d02', 'usr_demo001', '2026-01-23', 'missed', NULL, datetime('now')),
+('hci_r_0124', 'hab_d02', 'usr_demo001', '2026-01-24', 'done', NULL, datetime('now')),
+('hci_r_0125', 'hab_d02', 'usr_demo001', '2026-01-25', 'done', NULL, datetime('now')),
+('hci_r_0126', 'hab_d02', 'usr_demo001', '2026-01-26', 'missed', NULL, datetime('now')),
+('hci_r_0127', 'hab_d02', 'usr_demo001', '2026-01-27', 'done', NULL, datetime('now')),
+('hci_r_0128', 'hab_d02', 'usr_demo001', '2026-01-28', 'done', NULL, datetime('now')),
+('hci_r_0129', 'hab_d02', 'usr_demo001', '2026-01-29', 'missed', NULL, datetime('now')),
+('hci_r_0130', 'hab_d02', 'usr_demo001', '2026-01-30', 'done', NULL, datetime('now')),
+('hci_r_0131', 'hab_d02', 'usr_demo001', '2026-01-31', 'done', NULL, datetime('now')),
+('hci_r_0201', 'hab_d02', 'usr_demo001', '2026-02-01', 'missed', NULL, datetime('now')),
+('hci_r_0202', 'hab_d02', 'usr_demo001', '2026-02-02', 'done', NULL, datetime('now')),
+('hci_r_0203', 'hab_d02', 'usr_demo001', '2026-02-03', 'done', NULL, datetime('now')),
+('hci_r_0204', 'hab_d02', 'usr_demo001', '2026-02-04', 'missed', NULL, datetime('now')),
+('hci_r_0205', 'hab_d02', 'usr_demo001', '2026-02-05', 'done', NULL, datetime('now')),
+('hci_r_0206', 'hab_d02', 'usr_demo001', '2026-02-06', 'done', NULL, datetime('now')),
+('hci_r_0207', 'hab_d02', 'usr_demo001', '2026-02-07', 'missed', NULL, datetime('now')),
+('hci_r_0208', 'hab_d02', 'usr_demo001', '2026-02-08', 'done', NULL, datetime('now')),
+('hci_r_0209', 'hab_d02', 'usr_demo001', '2026-02-09', 'done', NULL, datetime('now')),
+('hci_r_0210', 'hab_d02', 'usr_demo001', '2026-02-10', 'missed', NULL, datetime('now')),
+('hci_r_0211', 'hab_d02', 'usr_demo001', '2026-02-11', 'done', NULL, datetime('now')),
+('hci_r_0212', 'hab_d02', 'usr_demo001', '2026-02-12', 'done', NULL, datetime('now')),
+('hci_r_0213', 'hab_d02', 'usr_demo001', '2026-02-13', 'missed', NULL, datetime('now')),
+('hci_r_0214', 'hab_d02', 'usr_demo001', '2026-02-14', 'done', NULL, datetime('now')),
+('hci_r_0215', 'hab_d02', 'usr_demo001', '2026-02-15', 'done', NULL, datetime('now')),
+('hci_r_0216', 'hab_d02', 'usr_demo001', '2026-02-16', 'missed', NULL, datetime('now')),
+('hci_r_0217', 'hab_d02', 'usr_demo001', '2026-02-17', 'done', NULL, datetime('now')),
+('hci_r_0218', 'hab_d02', 'usr_demo001', '2026-02-18', 'done', NULL, datetime('now')),
+('hci_r_0219', 'hab_d02', 'usr_demo001', '2026-02-19', 'missed', NULL, datetime('now')),
+('hci_r_0220', 'hab_d02', 'usr_demo001', '2026-02-20', 'done', NULL, datetime('now')),
+('hci_r_0221', 'hab_d02', 'usr_demo001', '2026-02-21', 'done', NULL, datetime('now')),
+('hci_r_0222', 'hab_d02', 'usr_demo001', '2026-02-22', 'missed', NULL, datetime('now')),
+('hci_r_0223', 'hab_d02', 'usr_demo001', '2026-02-23', 'done', NULL, datetime('now')),
+('hci_r_0224', 'hab_d02', 'usr_demo001', '2026-02-24', 'done', NULL, datetime('now')),
+('hci_r_0225', 'hab_d02', 'usr_demo001', '2026-02-25', 'missed', NULL, datetime('now')),
+('hci_r_0226', 'hab_d02', 'usr_demo001', '2026-02-26', 'done', NULL, datetime('now')),
+('hci_r_0227', 'hab_d02', 'usr_demo001', '2026-02-27', 'done', NULL, datetime('now')),
+('hci_r_0228', 'hab_d02', 'usr_demo001', '2026-02-28', 'missed', NULL, datetime('now')),
+('hci_r_0301', 'hab_d02', 'usr_demo001', '2026-03-01', 'done', NULL, datetime('now')),
+('hci_r_0302', 'hab_d02', 'usr_demo001', '2026-03-02', 'missed', NULL, datetime('now')),
+('hci_r_0303', 'hab_d02', 'usr_demo001', '2026-03-03', 'done', NULL, datetime('now')),
+('hci_r_0304', 'hab_d02', 'usr_demo001', '2026-03-04', 'missed', NULL, datetime('now')),
+('hci_r_0305', 'hab_d02', 'usr_demo001', '2026-03-05', 'done', NULL, datetime('now')),
+('hci_r_0306', 'hab_d02', 'usr_demo001', '2026-03-06', 'missed', NULL, datetime('now')),
+('hci_r_0307', 'hab_d02', 'usr_demo001', '2026-03-07', 'done', NULL, datetime('now')),
+('hci_r_0308', 'hab_d02', 'usr_demo001', '2026-03-08', 'missed', NULL, datetime('now')),
+('hci_r_0309', 'hab_d02', 'usr_demo001', '2026-03-09', 'done', NULL, datetime('now')),
+('hci_r_0310', 'hab_d02', 'usr_demo001', '2026-03-10', 'missed', NULL, datetime('now')),
+('hci_r_0311', 'hab_d02', 'usr_demo001', '2026-03-11', 'done', NULL, datetime('now')),
+('hci_r_0312', 'hab_d02', 'usr_demo001', '2026-03-12', 'missed', NULL, datetime('now')),
+('hci_r_0313', 'hab_d02', 'usr_demo001', '2026-03-13', 'done', NULL, datetime('now')),
+('hci_r_0314', 'hab_d02', 'usr_demo001', '2026-03-14', 'done', NULL, datetime('now')),
+('hci_r_0315', 'hab_d02', 'usr_demo001', '2026-03-15', 'done', NULL, datetime('now')),
+('hci_r_0316', 'hab_d02', 'usr_demo001', '2026-03-16', 'done', NULL, datetime('now')),
+('hci_r_0317', 'hab_d02', 'usr_demo001', '2026-03-17', 'done', NULL, datetime('now'));
+
+-- Meditate: 60% completion, streak 3 (Mar 15-17)
+INSERT INTO habit_checkins (id, habit_id, user_id, checkin_date, status, note, created_at) VALUES
+('hci_m_0116', 'hab_d03', 'usr_demo001', '2026-01-16', 'done', NULL, datetime('now')),
+('hci_m_0117', 'hab_d03', 'usr_demo001', '2026-01-17', 'missed', NULL, datetime('now')),
+('hci_m_0118', 'hab_d03', 'usr_demo001', '2026-01-18', 'missed', NULL, datetime('now')),
+('hci_m_0119', 'hab_d03', 'usr_demo001', '2026-01-19', 'done', NULL, datetime('now')),
+('hci_m_0120', 'hab_d03', 'usr_demo001', '2026-01-20', 'done', NULL, datetime('now')),
+('hci_m_0121', 'hab_d03', 'usr_demo001', '2026-01-21', 'missed', NULL, datetime('now')),
+('hci_m_0122', 'hab_d03', 'usr_demo001', '2026-01-22', 'done', NULL, datetime('now')),
+('hci_m_0123', 'hab_d03', 'usr_demo001', '2026-01-23', 'done', NULL, datetime('now')),
+('hci_m_0124', 'hab_d03', 'usr_demo001', '2026-01-24', 'missed', NULL, datetime('now')),
+('hci_m_0125', 'hab_d03', 'usr_demo001', '2026-01-25', 'missed', NULL, datetime('now')),
+('hci_m_0126', 'hab_d03', 'usr_demo001', '2026-01-26', 'done', NULL, datetime('now')),
+('hci_m_0127', 'hab_d03', 'usr_demo001', '2026-01-27', 'done', NULL, datetime('now')),
+('hci_m_0128', 'hab_d03', 'usr_demo001', '2026-01-28', 'missed', NULL, datetime('now')),
+('hci_m_0129', 'hab_d03', 'usr_demo001', '2026-01-29', 'done', NULL, datetime('now')),
+('hci_m_0130', 'hab_d03', 'usr_demo001', '2026-01-30', 'missed', NULL, datetime('now')),
+('hci_m_0131', 'hab_d03', 'usr_demo001', '2026-01-31', 'done', NULL, datetime('now')),
+('hci_m_0201', 'hab_d03', 'usr_demo001', '2026-02-01', 'missed', NULL, datetime('now')),
+('hci_m_0202', 'hab_d03', 'usr_demo001', '2026-02-02', 'done', NULL, datetime('now')),
+('hci_m_0203', 'hab_d03', 'usr_demo001', '2026-02-03', 'missed', NULL, datetime('now')),
+('hci_m_0204', 'hab_d03', 'usr_demo001', '2026-02-04', 'done', NULL, datetime('now')),
+('hci_m_0205', 'hab_d03', 'usr_demo001', '2026-02-05', 'done', NULL, datetime('now')),
+('hci_m_0206', 'hab_d03', 'usr_demo001', '2026-02-06', 'missed', NULL, datetime('now')),
+('hci_m_0207', 'hab_d03', 'usr_demo001', '2026-02-07', 'done', NULL, datetime('now')),
+('hci_m_0208', 'hab_d03', 'usr_demo001', '2026-02-08', 'missed', NULL, datetime('now')),
+('hci_m_0209', 'hab_d03', 'usr_demo001', '2026-02-09', 'done', NULL, datetime('now')),
+('hci_m_0210', 'hab_d03', 'usr_demo001', '2026-02-10', 'done', NULL, datetime('now')),
+('hci_m_0211', 'hab_d03', 'usr_demo001', '2026-02-11', 'missed', NULL, datetime('now')),
+('hci_m_0212', 'hab_d03', 'usr_demo001', '2026-02-12', 'done', NULL, datetime('now')),
+('hci_m_0213', 'hab_d03', 'usr_demo001', '2026-02-13', 'missed', NULL, datetime('now')),
+('hci_m_0214', 'hab_d03', 'usr_demo001', '2026-02-14', 'done', NULL, datetime('now')),
+('hci_m_0215', 'hab_d03', 'usr_demo001', '2026-02-15', 'missed', NULL, datetime('now')),
+('hci_m_0216', 'hab_d03', 'usr_demo001', '2026-02-16', 'done', NULL, datetime('now')),
+('hci_m_0217', 'hab_d03', 'usr_demo001', '2026-02-17', 'missed', NULL, datetime('now')),
+('hci_m_0218', 'hab_d03', 'usr_demo001', '2026-02-18', 'done', NULL, datetime('now')),
+('hci_m_0219', 'hab_d03', 'usr_demo001', '2026-02-19', 'missed', NULL, datetime('now')),
+('hci_m_0220', 'hab_d03', 'usr_demo001', '2026-02-20', 'done', NULL, datetime('now')),
+('hci_m_0221', 'hab_d03', 'usr_demo001', '2026-02-21', 'missed', NULL, datetime('now')),
+('hci_m_0222', 'hab_d03', 'usr_demo001', '2026-02-22', 'done', NULL, datetime('now')),
+('hci_m_0223', 'hab_d03', 'usr_demo001', '2026-02-23', 'missed', NULL, datetime('now')),
+('hci_m_0224', 'hab_d03', 'usr_demo001', '2026-02-24', 'done', NULL, datetime('now')),
+('hci_m_0225', 'hab_d03', 'usr_demo001', '2026-02-25', 'missed', NULL, datetime('now')),
+('hci_m_0226', 'hab_d03', 'usr_demo001', '2026-02-26', 'done', NULL, datetime('now')),
+('hci_m_0227', 'hab_d03', 'usr_demo001', '2026-02-27', 'missed', NULL, datetime('now')),
+('hci_m_0228', 'hab_d03', 'usr_demo001', '2026-02-28', 'done', NULL, datetime('now')),
+('hci_m_0301', 'hab_d03', 'usr_demo001', '2026-03-01', 'missed', NULL, datetime('now')),
+('hci_m_0302', 'hab_d03', 'usr_demo001', '2026-03-02', 'done', NULL, datetime('now')),
+('hci_m_0303', 'hab_d03', 'usr_demo001', '2026-03-03', 'missed', NULL, datetime('now')),
+('hci_m_0304', 'hab_d03', 'usr_demo001', '2026-03-04', 'done', NULL, datetime('now')),
+('hci_m_0305', 'hab_d03', 'usr_demo001', '2026-03-05', 'missed', NULL, datetime('now')),
+('hci_m_0306', 'hab_d03', 'usr_demo001', '2026-03-06', 'done', NULL, datetime('now')),
+('hci_m_0307', 'hab_d03', 'usr_demo001', '2026-03-07', 'missed', NULL, datetime('now')),
+('hci_m_0308', 'hab_d03', 'usr_demo001', '2026-03-08', 'done', NULL, datetime('now')),
+('hci_m_0309', 'hab_d03', 'usr_demo001', '2026-03-09', 'missed', NULL, datetime('now')),
+('hci_m_0310', 'hab_d03', 'usr_demo001', '2026-03-10', 'done', NULL, datetime('now')),
+('hci_m_0311', 'hab_d03', 'usr_demo001', '2026-03-11', 'missed', NULL, datetime('now')),
+('hci_m_0312', 'hab_d03', 'usr_demo001', '2026-03-12', 'done', NULL, datetime('now')),
+('hci_m_0313', 'hab_d03', 'usr_demo001', '2026-03-13', 'missed', NULL, datetime('now')),
+('hci_m_0314', 'hab_d03', 'usr_demo001', '2026-03-14', 'missed', NULL, datetime('now')),
+('hci_m_0315', 'hab_d03', 'usr_demo001', '2026-03-15', 'done', NULL, datetime('now')),
+('hci_m_0316', 'hab_d03', 'usr_demo001', '2026-03-16', 'done', NULL, datetime('now')),
+('hci_m_0317', 'hab_d03', 'usr_demo001', '2026-03-17', 'done', NULL, datetime('now'));
+
+-- Water: 90% completion, streak 18 (Feb 28 – Mar 17)
+INSERT INTO habit_checkins (id, habit_id, user_id, checkin_date, status, note, created_at) VALUES
+('hci_h2o_0116', 'hab_d04', 'usr_demo001', '2026-01-16', 'done', NULL, datetime('now')),
+('hci_h2o_0117', 'hab_d04', 'usr_demo001', '2026-01-17', 'done', NULL, datetime('now')),
+('hci_h2o_0118', 'hab_d04', 'usr_demo001', '2026-01-18', 'done', NULL, datetime('now')),
+('hci_h2o_0119', 'hab_d04', 'usr_demo001', '2026-01-19', 'done', NULL, datetime('now')),
+('hci_h2o_0120', 'hab_d04', 'usr_demo001', '2026-01-20', 'done', NULL, datetime('now')),
+('hci_h2o_0121', 'hab_d04', 'usr_demo001', '2026-01-21', 'missed', NULL, datetime('now')),
+('hci_h2o_0122', 'hab_d04', 'usr_demo001', '2026-01-22', 'done', NULL, datetime('now')),
+('hci_h2o_0123', 'hab_d04', 'usr_demo001', '2026-01-23', 'done', NULL, datetime('now')),
+('hci_h2o_0124', 'hab_d04', 'usr_demo001', '2026-01-24', 'done', NULL, datetime('now')),
+('hci_h2o_0125', 'hab_d04', 'usr_demo001', '2026-01-25', 'done', NULL, datetime('now')),
+('hci_h2o_0126', 'hab_d04', 'usr_demo001', '2026-01-26', 'done', NULL, datetime('now')),
+('hci_h2o_0127', 'hab_d04', 'usr_demo001', '2026-01-27', 'done', NULL, datetime('now')),
+('hci_h2o_0128', 'hab_d04', 'usr_demo001', '2026-01-28', 'done', NULL, datetime('now')),
+('hci_h2o_0129', 'hab_d04', 'usr_demo001', '2026-01-29', 'done', NULL, datetime('now')),
+('hci_h2o_0130', 'hab_d04', 'usr_demo001', '2026-01-30', 'missed', NULL, datetime('now')),
+('hci_h2o_0131', 'hab_d04', 'usr_demo001', '2026-01-31', 'done', NULL, datetime('now')),
+('hci_h2o_0201', 'hab_d04', 'usr_demo001', '2026-02-01', 'done', NULL, datetime('now')),
+('hci_h2o_0202', 'hab_d04', 'usr_demo001', '2026-02-02', 'done', NULL, datetime('now')),
+('hci_h2o_0203', 'hab_d04', 'usr_demo001', '2026-02-03', 'done', NULL, datetime('now')),
+('hci_h2o_0204', 'hab_d04', 'usr_demo001', '2026-02-04', 'done', NULL, datetime('now')),
+('hci_h2o_0205', 'hab_d04', 'usr_demo001', '2026-02-05', 'done', NULL, datetime('now')),
+('hci_h2o_0206', 'hab_d04', 'usr_demo001', '2026-02-06', 'done', NULL, datetime('now')),
+('hci_h2o_0207', 'hab_d04', 'usr_demo001', '2026-02-07', 'done', NULL, datetime('now')),
+('hci_h2o_0208', 'hab_d04', 'usr_demo001', '2026-02-08', 'missed', NULL, datetime('now')),
+('hci_h2o_0209', 'hab_d04', 'usr_demo001', '2026-02-09', 'done', NULL, datetime('now')),
+('hci_h2o_0210', 'hab_d04', 'usr_demo001', '2026-02-10', 'done', NULL, datetime('now')),
+('hci_h2o_0211', 'hab_d04', 'usr_demo001', '2026-02-11', 'done', NULL, datetime('now')),
+('hci_h2o_0212', 'hab_d04', 'usr_demo001', '2026-02-12', 'done', NULL, datetime('now')),
+('hci_h2o_0213', 'hab_d04', 'usr_demo001', '2026-02-13', 'done', NULL, datetime('now')),
+('hci_h2o_0214', 'hab_d04', 'usr_demo001', '2026-02-14', 'done', NULL, datetime('now')),
+('hci_h2o_0215', 'hab_d04', 'usr_demo001', '2026-02-15', 'done', NULL, datetime('now')),
+('hci_h2o_0216', 'hab_d04', 'usr_demo001', '2026-02-16', 'done', NULL, datetime('now')),
+('hci_h2o_0217', 'hab_d04', 'usr_demo001', '2026-02-17', 'done', NULL, datetime('now')),
+('hci_h2o_0218', 'hab_d04', 'usr_demo001', '2026-02-18', 'done', NULL, datetime('now')),
+('hci_h2o_0219', 'hab_d04', 'usr_demo001', '2026-02-19', 'done', NULL, datetime('now')),
+('hci_h2o_0220', 'hab_d04', 'usr_demo001', '2026-02-20', 'done', NULL, datetime('now')),
+('hci_h2o_0221', 'hab_d04', 'usr_demo001', '2026-02-21', 'done', NULL, datetime('now')),
+('hci_h2o_0222', 'hab_d04', 'usr_demo001', '2026-02-22', 'done', NULL, datetime('now')),
+('hci_h2o_0223', 'hab_d04', 'usr_demo001', '2026-02-23', 'done', NULL, datetime('now')),
+('hci_h2o_0224', 'hab_d04', 'usr_demo001', '2026-02-24', 'done', NULL, datetime('now')),
+('hci_h2o_0225', 'hab_d04', 'usr_demo001', '2026-02-25', 'done', NULL, datetime('now')),
+('hci_h2o_0226', 'hab_d04', 'usr_demo001', '2026-02-26', 'done', NULL, datetime('now')),
+('hci_h2o_0227', 'hab_d04', 'usr_demo001', '2026-02-27', 'done', NULL, datetime('now')),
+('hci_h2o_0228', 'hab_d04', 'usr_demo001', '2026-02-28', 'done', NULL, datetime('now')),
+('hci_h2o_0301', 'hab_d04', 'usr_demo001', '2026-03-01', 'done', NULL, datetime('now')),
+('hci_h2o_0302', 'hab_d04', 'usr_demo001', '2026-03-02', 'done', NULL, datetime('now')),
+('hci_h2o_0303', 'hab_d04', 'usr_demo001', '2026-03-03', 'done', NULL, datetime('now')),
+('hci_h2o_0304', 'hab_d04', 'usr_demo001', '2026-03-04', 'done', NULL, datetime('now')),
+('hci_h2o_0305', 'hab_d04', 'usr_demo001', '2026-03-05', 'done', NULL, datetime('now')),
+('hci_h2o_0306', 'hab_d04', 'usr_demo001', '2026-03-06', 'done', NULL, datetime('now')),
+('hci_h2o_0307', 'hab_d04', 'usr_demo001', '2026-03-07', 'done', NULL, datetime('now')),
+('hci_h2o_0308', 'hab_d04', 'usr_demo001', '2026-03-08', 'done', NULL, datetime('now')),
+('hci_h2o_0309', 'hab_d04', 'usr_demo001', '2026-03-09', 'done', NULL, datetime('now')),
+('hci_h2o_0310', 'hab_d04', 'usr_demo001', '2026-03-10', 'done', NULL, datetime('now')),
+('hci_h2o_0311', 'hab_d04', 'usr_demo001', '2026-03-11', 'done', NULL, datetime('now')),
+('hci_h2o_0312', 'hab_d04', 'usr_demo001', '2026-03-12', 'done', NULL, datetime('now')),
+('hci_h2o_0313', 'hab_d04', 'usr_demo001', '2026-03-13', 'done', NULL, datetime('now')),
+('hci_h2o_0314', 'hab_d04', 'usr_demo001', '2026-03-14', 'done', NULL, datetime('now')),
+('hci_h2o_0315', 'hab_d04', 'usr_demo001', '2026-03-15', 'done', NULL, datetime('now')),
+('hci_h2o_0316', 'hab_d04', 'usr_demo001', '2026-03-16', 'done', NULL, datetime('now')),
+('hci_h2o_0317', 'hab_d04', 'usr_demo001', '2026-03-17', 'done', NULL, datetime('now'));
+
+-- No Junk Food: 65% completion, streak 4 (Mar 14-17)
+INSERT INTO habit_checkins (id, habit_id, user_id, checkin_date, status, note, created_at) VALUES
+('hci_j_0116', 'hab_d05', 'usr_demo001', '2026-01-16', 'done', NULL, datetime('now')),
+('hci_j_0117', 'hab_d05', 'usr_demo001', '2026-01-17', 'missed', NULL, datetime('now')),
+('hci_j_0118', 'hab_d05', 'usr_demo001', '2026-01-18', 'done', NULL, datetime('now')),
+('hci_j_0119', 'hab_d05', 'usr_demo001', '2026-01-19', 'missed', NULL, datetime('now')),
+('hci_j_0120', 'hab_d05', 'usr_demo001', '2026-01-20', 'done', NULL, datetime('now')),
+('hci_j_0121', 'hab_d05', 'usr_demo001', '2026-01-21', 'done', NULL, datetime('now')),
+('hci_j_0122', 'hab_d05', 'usr_demo001', '2026-01-22', 'missed', NULL, datetime('now')),
+('hci_j_0123', 'hab_d05', 'usr_demo001', '2026-01-23', 'done', NULL, datetime('now')),
+('hci_j_0124', 'hab_d05', 'usr_demo001', '2026-01-24', 'missed', NULL, datetime('now')),
+('hci_j_0125', 'hab_d05', 'usr_demo001', '2026-01-25', 'missed', NULL, datetime('now')),
+('hci_j_0126', 'hab_d05', 'usr_demo001', '2026-01-26', 'done', NULL, datetime('now')),
+('hci_j_0127', 'hab_d05', 'usr_demo001', '2026-01-27', 'done', NULL, datetime('now')),
+('hci_j_0128', 'hab_d05', 'usr_demo001', '2026-01-28', 'done', NULL, datetime('now')),
+('hci_j_0129', 'hab_d05', 'usr_demo001', '2026-01-29', 'missed', NULL, datetime('now')),
+('hci_j_0130', 'hab_d05', 'usr_demo001', '2026-01-30', 'done', NULL, datetime('now')),
+('hci_j_0131', 'hab_d05', 'usr_demo001', '2026-01-31', 'done', NULL, datetime('now')),
+('hci_j_0201', 'hab_d05', 'usr_demo001', '2026-02-01', 'missed', NULL, datetime('now')),
+('hci_j_0202', 'hab_d05', 'usr_demo001', '2026-02-02', 'done', NULL, datetime('now')),
+('hci_j_0203', 'hab_d05', 'usr_demo001', '2026-02-03', 'missed', NULL, datetime('now')),
+('hci_j_0204', 'hab_d05', 'usr_demo001', '2026-02-04', 'missed', NULL, datetime('now')),
+('hci_j_0205', 'hab_d05', 'usr_demo001', '2026-02-05', 'done', NULL, datetime('now')),
+('hci_j_0206', 'hab_d05', 'usr_demo001', '2026-02-06', 'done', NULL, datetime('now')),
+('hci_j_0207', 'hab_d05', 'usr_demo001', '2026-02-07', 'missed', NULL, datetime('now')),
+('hci_j_0208', 'hab_d05', 'usr_demo001', '2026-02-08', 'done', NULL, datetime('now')),
+('hci_j_0209', 'hab_d05', 'usr_demo001', '2026-02-09', 'done', NULL, datetime('now')),
+('hci_j_0210', 'hab_d05', 'usr_demo001', '2026-02-10', 'missed', NULL, datetime('now')),
+('hci_j_0211', 'hab_d05', 'usr_demo001', '2026-02-11', 'done', NULL, datetime('now')),
+('hci_j_0212', 'hab_d05', 'usr_demo001', '2026-02-12', 'missed', NULL, datetime('now')),
+('hci_j_0213', 'hab_d05', 'usr_demo001', '2026-02-13', 'done', NULL, datetime('now')),
+('hci_j_0214', 'hab_d05', 'usr_demo001', '2026-02-14', 'missed', NULL, datetime('now')),
+('hci_j_0215', 'hab_d05', 'usr_demo001', '2026-02-15', 'done', NULL, datetime('now')),
+('hci_j_0216', 'hab_d05', 'usr_demo001', '2026-02-16', 'missed', NULL, datetime('now')),
+('hci_j_0217', 'hab_d05', 'usr_demo001', '2026-02-17', 'done', NULL, datetime('now')),
+('hci_j_0218', 'hab_d05', 'usr_demo001', '2026-02-18', 'done', NULL, datetime('now')),
+('hci_j_0219', 'hab_d05', 'usr_demo001', '2026-02-19', 'missed', NULL, datetime('now')),
+('hci_j_0220', 'hab_d05', 'usr_demo001', '2026-02-20', 'done', NULL, datetime('now')),
+('hci_j_0221', 'hab_d05', 'usr_demo001', '2026-02-21', 'missed', NULL, datetime('now')),
+('hci_j_0222', 'hab_d05', 'usr_demo001', '2026-02-22', 'done', NULL, datetime('now')),
+('hci_j_0223', 'hab_d05', 'usr_demo001', '2026-02-23', 'missed', NULL, datetime('now')),
+('hci_j_0224', 'hab_d05', 'usr_demo001', '2026-02-24', 'done', NULL, datetime('now')),
+('hci_j_0225', 'hab_d05', 'usr_demo001', '2026-02-25', 'missed', NULL, datetime('now')),
+('hci_j_0226', 'hab_d05', 'usr_demo001', '2026-02-26', 'done', NULL, datetime('now')),
+('hci_j_0227', 'hab_d05', 'usr_demo001', '2026-02-27', 'missed', NULL, datetime('now')),
+('hci_j_0228', 'hab_d05', 'usr_demo001', '2026-02-28', 'done', NULL, datetime('now')),
+('hci_j_0301', 'hab_d05', 'usr_demo001', '2026-03-01', 'missed', NULL, datetime('now')),
+('hci_j_0302', 'hab_d05', 'usr_demo001', '2026-03-02', 'done', NULL, datetime('now')),
+('hci_j_0303', 'hab_d05', 'usr_demo001', '2026-03-03', 'missed', NULL, datetime('now')),
+('hci_j_0304', 'hab_d05', 'usr_demo001', '2026-03-04', 'done', NULL, datetime('now')),
+('hci_j_0305', 'hab_d05', 'usr_demo001', '2026-03-05', 'missed', NULL, datetime('now')),
+('hci_j_0306', 'hab_d05', 'usr_demo001', '2026-03-06', 'done', NULL, datetime('now')),
+('hci_j_0307', 'hab_d05', 'usr_demo001', '2026-03-07', 'missed', NULL, datetime('now')),
+('hci_j_0308', 'hab_d05', 'usr_demo001', '2026-03-08', 'done', NULL, datetime('now')),
+('hci_j_0309', 'hab_d05', 'usr_demo001', '2026-03-09', 'missed', NULL, datetime('now')),
+('hci_j_0310', 'hab_d05', 'usr_demo001', '2026-03-10', 'missed', NULL, datetime('now')),
+('hci_j_0311', 'hab_d05', 'usr_demo001', '2026-03-11', 'done', NULL, datetime('now')),
+('hci_j_0312', 'hab_d05', 'usr_demo001', '2026-03-12', 'missed', NULL, datetime('now')),
+('hci_j_0313', 'hab_d05', 'usr_demo001', '2026-03-13', 'missed', NULL, datetime('now')),
+('hci_j_0314', 'hab_d05', 'usr_demo001', '2026-03-14', 'done', NULL, datetime('now')),
+('hci_j_0315', 'hab_d05', 'usr_demo001', '2026-03-15', 'done', NULL, datetime('now')),
+('hci_j_0316', 'hab_d05', 'usr_demo001', '2026-03-16', 'done', NULL, datetime('now')),
+('hci_j_0317', 'hab_d05', 'usr_demo001', '2026-03-17', 'done', NULL, datetime('now'));
+
+-- Weekly Workout: Mon/Wed/Fri — streak 2 weeks, select Mondays and Wednesdays/Fridays
+INSERT INTO habit_checkins (id, habit_id, user_id, checkin_date, status, note, created_at) VALUES
+('hci_wo_0119', 'hab_d06', 'usr_demo001', '2026-01-19', 'done', NULL, datetime('now')),
+('hci_wo_0121', 'hab_d06', 'usr_demo001', '2026-01-21', 'done', NULL, datetime('now')),
+('hci_wo_0123', 'hab_d06', 'usr_demo001', '2026-01-23', 'done', NULL, datetime('now')),
+('hci_wo_0126', 'hab_d06', 'usr_demo001', '2026-01-26', 'done', NULL, datetime('now')),
+('hci_wo_0128', 'hab_d06', 'usr_demo001', '2026-01-28', 'missed', NULL, datetime('now')),
+('hci_wo_0130', 'hab_d06', 'usr_demo001', '2026-01-30', 'done', NULL, datetime('now')),
+('hci_wo_0202', 'hab_d06', 'usr_demo001', '2026-02-02', 'done', NULL, datetime('now')),
+('hci_wo_0204', 'hab_d06', 'usr_demo001', '2026-02-04', 'done', NULL, datetime('now')),
+('hci_wo_0206', 'hab_d06', 'usr_demo001', '2026-02-06', 'done', NULL, datetime('now')),
+('hci_wo_0209', 'hab_d06', 'usr_demo001', '2026-02-09', 'missed', NULL, datetime('now')),
+('hci_wo_0211', 'hab_d06', 'usr_demo001', '2026-02-11', 'done', NULL, datetime('now')),
+('hci_wo_0213', 'hab_d06', 'usr_demo001', '2026-02-13', 'done', NULL, datetime('now')),
+('hci_wo_0216', 'hab_d06', 'usr_demo001', '2026-02-16', 'done', NULL, datetime('now')),
+('hci_wo_0218', 'hab_d06', 'usr_demo001', '2026-02-18', 'done', NULL, datetime('now')),
+('hci_wo_0220', 'hab_d06', 'usr_demo001', '2026-02-20', 'missed', NULL, datetime('now')),
+('hci_wo_0223', 'hab_d06', 'usr_demo001', '2026-02-23', 'done', NULL, datetime('now')),
+('hci_wo_0225', 'hab_d06', 'usr_demo001', '2026-02-25', 'done', NULL, datetime('now')),
+('hci_wo_0227', 'hab_d06', 'usr_demo001', '2026-02-27', 'done', NULL, datetime('now')),
+('hci_wo_0302', 'hab_d06', 'usr_demo001', '2026-03-02', 'done', NULL, datetime('now')),
+('hci_wo_0304', 'hab_d06', 'usr_demo001', '2026-03-04', 'done', NULL, datetime('now')),
+('hci_wo_0306', 'hab_d06', 'usr_demo001', '2026-03-06', 'done', NULL, datetime('now')),
+('hci_wo_0309', 'hab_d06', 'usr_demo001', '2026-03-09', 'done', NULL, datetime('now')),
+('hci_wo_0311', 'hab_d06', 'usr_demo001', '2026-03-11', 'done', NULL, datetime('now')),
+('hci_wo_0313', 'hab_d06', 'usr_demo001', '2026-03-13', 'done', NULL, datetime('now')),
+('hci_wo_0316', 'hab_d06', 'usr_demo001', '2026-03-16', 'done', NULL, datetime('now'));
+
+-- Learn Something New: 75% weekdays, streak 7 (Mar 11-17)
+INSERT INTO habit_checkins (id, habit_id, user_id, checkin_date, status, note, created_at) VALUES
+('hci_l_0116', 'hab_d07', 'usr_demo001', '2026-01-16', 'done', NULL, datetime('now')),
+('hci_l_0117', 'hab_d07', 'usr_demo001', '2026-01-17', 'done', NULL, datetime('now')),
+('hci_l_0118', 'hab_d07', 'usr_demo001', '2026-01-18', 'done', NULL, datetime('now')),
+('hci_l_0119', 'hab_d07', 'usr_demo001', '2026-01-19', 'missed', NULL, datetime('now')),
+('hci_l_0120', 'hab_d07', 'usr_demo001', '2026-01-20', 'done', NULL, datetime('now')),
+('hci_l_0121', 'hab_d07', 'usr_demo001', '2026-01-21', 'done', NULL, datetime('now')),
+('hci_l_0122', 'hab_d07', 'usr_demo001', '2026-01-22', 'done', NULL, datetime('now')),
+('hci_l_0123', 'hab_d07', 'usr_demo001', '2026-01-23', 'missed', NULL, datetime('now')),
+('hci_l_0124', 'hab_d07', 'usr_demo001', '2026-01-24', 'done', NULL, datetime('now')),
+('hci_l_0125', 'hab_d07', 'usr_demo001', '2026-01-25', 'done', NULL, datetime('now')),
+('hci_l_0126', 'hab_d07', 'usr_demo001', '2026-01-26', 'missed', NULL, datetime('now')),
+('hci_l_0127', 'hab_d07', 'usr_demo001', '2026-01-27', 'done', NULL, datetime('now')),
+('hci_l_0128', 'hab_d07', 'usr_demo001', '2026-01-28', 'done', NULL, datetime('now')),
+('hci_l_0129', 'hab_d07', 'usr_demo001', '2026-01-29', 'done', NULL, datetime('now')),
+('hci_l_0130', 'hab_d07', 'usr_demo001', '2026-01-30', 'missed', NULL, datetime('now')),
+('hci_l_0131', 'hab_d07', 'usr_demo001', '2026-01-31', 'done', NULL, datetime('now')),
+('hci_l_0201', 'hab_d07', 'usr_demo001', '2026-02-01', 'done', NULL, datetime('now')),
+('hci_l_0202', 'hab_d07', 'usr_demo001', '2026-02-02', 'done', NULL, datetime('now')),
+('hci_l_0203', 'hab_d07', 'usr_demo001', '2026-02-03', 'missed', NULL, datetime('now')),
+('hci_l_0204', 'hab_d07', 'usr_demo001', '2026-02-04', 'done', NULL, datetime('now')),
+('hci_l_0205', 'hab_d07', 'usr_demo001', '2026-02-05', 'done', NULL, datetime('now')),
+('hci_l_0206', 'hab_d07', 'usr_demo001', '2026-02-06', 'done', NULL, datetime('now')),
+('hci_l_0207', 'hab_d07', 'usr_demo001', '2026-02-07', 'missed', NULL, datetime('now')),
+('hci_l_0208', 'hab_d07', 'usr_demo001', '2026-02-08', 'done', NULL, datetime('now')),
+('hci_l_0209', 'hab_d07', 'usr_demo001', '2026-02-09', 'done', NULL, datetime('now')),
+('hci_l_0210', 'hab_d07', 'usr_demo001', '2026-02-10', 'done', NULL, datetime('now')),
+('hci_l_0211', 'hab_d07', 'usr_demo001', '2026-02-11', 'missed', NULL, datetime('now')),
+('hci_l_0212', 'hab_d07', 'usr_demo001', '2026-02-12', 'done', NULL, datetime('now')),
+('hci_l_0213', 'hab_d07', 'usr_demo001', '2026-02-13', 'done', NULL, datetime('now')),
+('hci_l_0214', 'hab_d07', 'usr_demo001', '2026-02-14', 'done', NULL, datetime('now')),
+('hci_l_0215', 'hab_d07', 'usr_demo001', '2026-02-15', 'missed', NULL, datetime('now')),
+('hci_l_0216', 'hab_d07', 'usr_demo001', '2026-02-16', 'done', NULL, datetime('now')),
+('hci_l_0217', 'hab_d07', 'usr_demo001', '2026-02-17', 'done', NULL, datetime('now')),
+('hci_l_0218', 'hab_d07', 'usr_demo001', '2026-02-18', 'done', NULL, datetime('now')),
+('hci_l_0219', 'hab_d07', 'usr_demo001', '2026-02-19', 'missed', NULL, datetime('now')),
+('hci_l_0220', 'hab_d07', 'usr_demo001', '2026-02-20', 'done', NULL, datetime('now')),
+('hci_l_0221', 'hab_d07', 'usr_demo001', '2026-02-21', 'done', NULL, datetime('now')),
+('hci_l_0222', 'hab_d07', 'usr_demo001', '2026-02-22', 'done', NULL, datetime('now')),
+('hci_l_0223', 'hab_d07', 'usr_demo001', '2026-02-23', 'missed', NULL, datetime('now')),
+('hci_l_0224', 'hab_d07', 'usr_demo001', '2026-02-24', 'done', NULL, datetime('now')),
+('hci_l_0225', 'hab_d07', 'usr_demo001', '2026-02-25', 'done', NULL, datetime('now')),
+('hci_l_0226', 'hab_d07', 'usr_demo001', '2026-02-26', 'done', NULL, datetime('now')),
+('hci_l_0227', 'hab_d07', 'usr_demo001', '2026-02-27', 'missed', NULL, datetime('now')),
+('hci_l_0228', 'hab_d07', 'usr_demo001', '2026-02-28', 'done', NULL, datetime('now')),
+('hci_l_0301', 'hab_d07', 'usr_demo001', '2026-03-01', 'done', NULL, datetime('now')),
+('hci_l_0302', 'hab_d07', 'usr_demo001', '2026-03-02', 'done', NULL, datetime('now')),
+('hci_l_0303', 'hab_d07', 'usr_demo001', '2026-03-03', 'missed', NULL, datetime('now')),
+('hci_l_0304', 'hab_d07', 'usr_demo001', '2026-03-04', 'done', NULL, datetime('now')),
+('hci_l_0305', 'hab_d07', 'usr_demo001', '2026-03-05', 'done', NULL, datetime('now')),
+('hci_l_0306', 'hab_d07', 'usr_demo001', '2026-03-06', 'done', NULL, datetime('now')),
+('hci_l_0307', 'hab_d07', 'usr_demo001', '2026-03-07', 'missed', NULL, datetime('now')),
+('hci_l_0308', 'hab_d07', 'usr_demo001', '2026-03-08', 'done', NULL, datetime('now')),
+('hci_l_0309', 'hab_d07', 'usr_demo001', '2026-03-09', 'done', NULL, datetime('now')),
+('hci_l_0310', 'hab_d07', 'usr_demo001', '2026-03-10', 'missed', NULL, datetime('now')),
+('hci_l_0311', 'hab_d07', 'usr_demo001', '2026-03-11', 'done', NULL, datetime('now')),
+('hci_l_0312', 'hab_d07', 'usr_demo001', '2026-03-12', 'done', NULL, datetime('now')),
+('hci_l_0313', 'hab_d07', 'usr_demo001', '2026-03-13', 'done', NULL, datetime('now')),
+('hci_l_0314', 'hab_d07', 'usr_demo001', '2026-03-14', 'done', NULL, datetime('now')),
+('hci_l_0315', 'hab_d07', 'usr_demo001', '2026-03-15', 'done', NULL, datetime('now')),
+('hci_l_0316', 'hab_d07', 'usr_demo001', '2026-03-16', 'done', NULL, datetime('now')),
+('hci_l_0317', 'hab_d07', 'usr_demo001', '2026-03-17', 'done', NULL, datetime('now'));
+
+-- ========== 8 demo goals (4 money + 4 activity) ==========
+-- Money goals: target_amount_minor = target in paise, current_amount_minor = current in paise
+INSERT INTO goals (id, user_id, title, description, goal_type, target_amount_minor, current_amount_minor, target_value, unit_label, target_date, color, icon, is_active, created_at, updated_at, deleted_at) VALUES
+('goal_d01', 'usr_demo001', 'Emergency Fund', '6 months expense buffer', 'money', 30000000, 8500000, NULL, NULL, '2026-12-31', '#10B981', 'emergency', 1, datetime('now', '-180 days'), datetime('now'), NULL),
+('goal_d02', 'usr_demo001', 'New Laptop', 'MacBook Pro for work', 'money', 8000000, 3200000, NULL, NULL, '2026-09-01', '#F59E0B', 'laptop', 1, datetime('now', '-90 days'), datetime('now'), NULL),
+('goal_d03', 'usr_demo001', 'Goa Trip', 'Family vacation to Goa', 'money', 2500000, 1850000, NULL, NULL, '2026-06-30', '#5B6CF9', 'travel', 1, datetime('now', '-120 days'), datetime('now'), NULL),
+('goal_d04', 'usr_demo001', 'Stock Investment Fund', 'Long term wealth', 'money', 10000000, 4500000, NULL, NULL, '2027-01-01', '#8B5CF6', 'savings', 1, datetime('now', '-150 days'), datetime('now'), NULL),
+-- Activity goals: current_amount_minor stores progress (units, not paise)
+('goal_d05', 'usr_demo001', 'Complete React Course', '30 lessons total', 'activity', 0, 18, 30, 'lessons', '2026-04-30', '#EC4899', 'education', 1, datetime('now', '-60 days'), datetime('now'), NULL),
+('goal_d06', 'usr_demo001', 'Run 100km This Year', 'Running goal for 2026', 'activity', 0, 34, 100, 'km', '2026-12-31', '#EF4444', 'run', 1, datetime('now', '-75 days'), datetime('now'), NULL),
+('goal_d07', 'usr_demo001', 'Read 12 Books', 'One book per month', 'activity', 0, 4, 12, 'books', '2026-12-31', '#06B6D4', 'book', 1, datetime('now', '-80 days'), datetime('now'), NULL),
+('goal_d08', 'usr_demo001', 'Meditate 100 Days', 'Build meditation habit', 'activity', 0, 47, 100, 'days', '2026-07-01', '#84CC16', 'meditate', 1, datetime('now', '-70 days'), datetime('now'), NULL);
+
+-- ========== Goal deposits (money goals only — activity goals updated separately) ==========
+-- Emergency Fund deposits
+INSERT INTO goal_deposits (id, goal_id, user_id, amount_minor, note, deposit_date, created_at) VALUES
+('gdp_e01', 'goal_d01', 'usr_demo001', 500000, 'October savings', '2025-10-15', datetime('now')),
+('gdp_e02', 'goal_d01', 'usr_demo001', 1000000, 'November savings', '2025-11-15', datetime('now')),
+('gdp_e03', 'goal_d01', 'usr_demo001', 750000, 'December savings', '2025-12-15', datetime('now')),
+('gdp_e04', 'goal_d01', 'usr_demo001', 1500000, 'January bonus', '2026-01-20', datetime('now')),
+('gdp_e05', 'goal_d01', 'usr_demo001', 1000000, 'February savings', '2026-02-15', datetime('now')),
+('gdp_e06', 'goal_d01', 'usr_demo001', 1250000, 'March savings', '2026-03-10', datetime('now')),
+('gdp_e07', 'goal_d01', 'usr_demo001', 1500000, 'Freelance transfer', '2026-01-10', datetime('now')),
+('gdp_e08', 'goal_d01', 'usr_demo001', 1000000, 'Extra savings', '2025-09-30', datetime('now'));
+
+-- New Laptop deposits
+INSERT INTO goal_deposits (id, goal_id, user_id, amount_minor, note, deposit_date, created_at) VALUES
+('gdp_l01', 'goal_d02', 'usr_demo001', 1000000, 'Initial deposit', '2025-12-01', datetime('now')),
+('gdp_l02', 'goal_d02', 'usr_demo001', 800000, 'January savings', '2026-01-15', datetime('now')),
+('gdp_l03', 'goal_d02', 'usr_demo001', 900000, 'February savings', '2026-02-15', datetime('now')),
+('gdp_l04', 'goal_d02', 'usr_demo001', 500000, 'March savings', '2026-03-05', datetime('now'));
+
+-- Goa Trip deposits
+INSERT INTO goal_deposits (id, goal_id, user_id, amount_minor, note, deposit_date, created_at) VALUES
+('gdp_g01', 'goal_d03', 'usr_demo001', 300000, 'Started saving', '2025-11-01', datetime('now')),
+('gdp_g02', 'goal_d03', 'usr_demo001', 400000, 'December savings', '2025-12-10', datetime('now')),
+('gdp_g03', 'goal_d03', 'usr_demo001', 500000, 'January savings', '2026-01-25', datetime('now')),
+('gdp_g04', 'goal_d03', 'usr_demo001', 350000, 'February savings', '2026-02-20', datetime('now')),
+('gdp_g05', 'goal_d03', 'usr_demo001', 300000, 'March savings', '2026-03-12', datetime('now'));
+
+-- Stock Investment Fund deposits
+INSERT INTO goal_deposits (id, goal_id, user_id, amount_minor, note, deposit_date, created_at) VALUES
+('gdp_s01', 'goal_d04', 'usr_demo001', 500000, 'Sep SIP', '2025-09-05', datetime('now')),
+('gdp_s02', 'goal_d04', 'usr_demo001', 750000, 'Oct SIP', '2025-10-05', datetime('now')),
+('gdp_s03', 'goal_d04', 'usr_demo001', 750000, 'Nov SIP', '2025-11-05', datetime('now')),
+('gdp_s04', 'goal_d04', 'usr_demo001', 1000000, 'Dec bonus investment', '2025-12-05', datetime('now')),
+('gdp_s05', 'goal_d04', 'usr_demo001', 750000, 'Jan SIP', '2026-01-05', datetime('now')),
+('gdp_s06', 'goal_d04', 'usr_demo001', 750000, 'Feb SIP', '2026-02-05', datetime('now'));
+
+-- Activity goal progress deposits (amount_minor = units completed, not paise)
+-- React Course: 18 lessons so far
+INSERT INTO goal_deposits (id, goal_id, user_id, amount_minor, note, deposit_date, created_at) VALUES
+('gdp_rc01', 'goal_d05', 'usr_demo001', 5, 'Week 1: lessons 1-5', '2026-01-20', datetime('now')),
+('gdp_rc02', 'goal_d05', 'usr_demo001', 4, 'Week 2: hooks & state', '2026-01-27', datetime('now')),
+('gdp_rc03', 'goal_d05', 'usr_demo001', 4, 'Week 3: routing', '2026-02-10', datetime('now')),
+('gdp_rc04', 'goal_d05', 'usr_demo001', 3, 'Week 4: APIs', '2026-02-24', datetime('now')),
+('gdp_rc05', 'goal_d05', 'usr_demo001', 2, 'This week: context', '2026-03-10', datetime('now'));
+
+-- Run 100km: 34 km so far
+INSERT INTO goal_deposits (id, goal_id, user_id, amount_minor, note, deposit_date, created_at) VALUES
+('gdp_rn01', 'goal_d06', 'usr_demo001', 5, 'Week 1 runs', '2026-01-18', datetime('now')),
+('gdp_rn02', 'goal_d06', 'usr_demo001', 6, 'Week 2 runs', '2026-01-25', datetime('now')),
+('gdp_rn03', 'goal_d06', 'usr_demo001', 4, 'Week 3 runs', '2026-02-01', datetime('now')),
+('gdp_rn04', 'goal_d06', 'usr_demo001', 5, 'Week 4 runs', '2026-02-08', datetime('now')),
+('gdp_rn05', 'goal_d06', 'usr_demo001', 6, 'Week 5 runs', '2026-02-22', datetime('now')),
+('gdp_rn06', 'goal_d06', 'usr_demo001', 8, 'March runs', '2026-03-15', datetime('now'));
+
+-- Read 12 books: 4 books so far
+INSERT INTO goal_deposits (id, goal_id, user_id, amount_minor, note, deposit_date, created_at) VALUES
+('gdp_bk01', 'goal_d07', 'usr_demo001', 1, 'Atomic Habits', '2026-01-20', datetime('now')),
+('gdp_bk02', 'goal_d07', 'usr_demo001', 1, 'Deep Work', '2026-02-05', datetime('now')),
+('gdp_bk03', 'goal_d07', 'usr_demo001', 1, 'The Psychology of Money', '2026-02-25', datetime('now')),
+('gdp_bk04', 'goal_d07', 'usr_demo001', 1, 'Zero to One', '2026-03-14', datetime('now'));
+
+-- Meditate 100 days: 47 days so far
+INSERT INTO goal_deposits (id, goal_id, user_id, amount_minor, note, deposit_date, created_at) VALUES
+('gdp_md01', 'goal_d08', 'usr_demo001', 12, 'Jan progress', '2026-01-31', datetime('now')),
+('gdp_md02', 'goal_d08', 'usr_demo001', 18, 'Feb progress', '2026-02-28', datetime('now')),
+('gdp_md03', 'goal_d08', 'usr_demo001', 17, 'Mar progress so far', '2026-03-17', datetime('now'));
+
+-- ========== 7 subscriptions ==========
 INSERT INTO subscriptions (id, user_id, name, amount_minor, billing_cycle, next_renewal_date, category, logo_url, notes, auto_renew, reminder_days_before, is_active, created_at, updated_at, deleted_at) VALUES
-('sub_d01', 'usr_demo001', 'Netflix', 64900, 'monthly', '2026-04-01', 'Entertainment', NULL, 'Premium', 1, 3, 1, datetime('now'), datetime('now'), NULL),
-('sub_d02', 'usr_demo001', 'Spotify', 11900, 'monthly', '2026-04-01', 'Entertainment', NULL, 'Individual', 1, 3, 1, datetime('now'), datetime('now'), NULL),
-('sub_d03', 'usr_demo001', 'YouTube Premium', 12900, 'monthly', '2026-04-15', 'Entertainment', NULL, 'Family', 1, 3, 1, datetime('now'), datetime('now'), NULL);
+('sub_d01', 'usr_demo001', 'Netflix', 64900, 'monthly', '2026-04-05', 'Entertainment', NULL, 'Standard HD plan', 1, 3, 1, datetime('now'), datetime('now'), NULL),
+('sub_d02', 'usr_demo001', 'Spotify', 11900, 'monthly', '2026-04-12', 'Entertainment', NULL, 'Individual plan', 1, 3, 1, datetime('now'), datetime('now'), NULL),
+('sub_d03', 'usr_demo001', 'Amazon Prime', 149900, 'yearly', '2026-06-17', 'Shopping', NULL, 'Annual membership', 1, 7, 1, datetime('now'), datetime('now'), NULL),
+('sub_d04', 'usr_demo001', 'Gym Membership', 150000, 'monthly', '2026-04-01', 'Health', NULL, 'Gold''s Gym', 1, 5, 1, datetime('now'), datetime('now'), NULL),
+('sub_d05', 'usr_demo001', 'iCloud Storage', 7500, 'monthly', '2026-03-20', 'Utilities', NULL, '50GB plan', 1, 3, 1, datetime('now'), datetime('now'), NULL),
+('sub_d06', 'usr_demo001', 'LinkedIn Premium', 249900, 'monthly', '2026-04-01', 'Professional', NULL, 'Career plan', 1, 5, 1, datetime('now'), datetime('now'), NULL),
+('sub_d07', 'usr_demo001', 'Notion Pro', 16500, 'monthly', '2026-03-25', 'Productivity', NULL, 'Pro plan', 1, 3, 1, datetime('now'), datetime('now'), NULL);
 
--- ========== Notification prefs for demo user ==========
+-- ========== 5 budgets ==========
+INSERT INTO budgets (id, user_id, category_id, limit_minor, period, alert_threshold_pct, is_active, created_at, updated_at, deleted_at) VALUES
+('bud_d01', 'usr_demo001', 'cat_exp001', 800000, 'monthly', 80, 1, datetime('now'), datetime('now'), NULL),
+('bud_d02', 'usr_demo001', 'cat_exp002', 400000, 'monthly', 90, 1, datetime('now'), datetime('now'), NULL),
+('bud_d03', 'usr_demo001', 'cat_exp005', 200000, 'monthly', 75, 1, datetime('now'), datetime('now'), NULL),
+('bud_d04', 'usr_demo001', 'cat_exp004', 500000, 'monthly', 80, 1, datetime('now'), datetime('now'), NULL),
+('bud_d05', 'usr_demo001', 'cat_exp003', 300000, 'monthly', 85, 1, datetime('now'), datetime('now'), NULL);
+
+-- ========== 42 time entries (last 30 days) ==========
+INSERT INTO time_entries (id, user_id, title, category, start_time, end_time, duration_minutes, is_running, created_at, updated_at, deleted_at) VALUES
+-- Feb 15-16
+('te_001', 'usr_demo001', 'PokiMate UI Development', 'Deep Work', '2026-02-15T09:00:00', '2026-02-15T11:30:00', 150, 0, datetime('now'), datetime('now'), NULL),
+('te_002', 'usr_demo001', 'React Hooks Lecture', 'Learning', '2026-02-15T14:00:00', '2026-02-15T15:30:00', 90, 0, datetime('now'), datetime('now'), NULL),
+('te_003', 'usr_demo001', 'Morning Run', 'Exercise', '2026-02-16T06:30:00', '2026-02-16T07:10:00', 40, 0, datetime('now'), datetime('now'), NULL),
+('te_004', 'usr_demo001', 'Backend API Design', 'Deep Work', '2026-02-16T10:00:00', '2026-02-16T12:30:00', 150, 0, datetime('now'), datetime('now'), NULL),
+-- Feb 17
+('te_005', 'usr_demo001', 'Client Call - Project Review', 'Meeting', '2026-02-17T11:00:00', '2026-02-17T12:00:00', 60, 0, datetime('now'), datetime('now'), NULL),
+('te_006', 'usr_demo001', 'Reading: Atomic Habits', 'Reading', '2026-02-17T21:00:00', '2026-02-17T21:30:00', 30, 0, datetime('now'), datetime('now'), NULL),
+-- Feb 18-19
+('te_007', 'usr_demo001', 'Database Schema Design', 'Deep Work', '2026-02-18T09:30:00', '2026-02-18T12:00:00', 150, 0, datetime('now'), datetime('now'), NULL),
+('te_008', 'usr_demo001', 'React State Management', 'Learning', '2026-02-18T15:00:00', '2026-02-18T16:30:00', 90, 0, datetime('now'), datetime('now'), NULL),
+('te_009', 'usr_demo001', 'Morning Walk', 'Exercise', '2026-02-19T06:30:00', '2026-02-19T07:05:00', 35, 0, datetime('now'), datetime('now'), NULL),
+-- Feb 20
+('te_010', 'usr_demo001', 'PokiMate Finance Module', 'Deep Work', '2026-02-20T09:00:00', '2026-02-20T11:00:00', 120, 0, datetime('now'), datetime('now'), NULL),
+('te_011', 'usr_demo001', 'Reading: Deep Work', 'Reading', '2026-02-20T20:30:00', '2026-02-20T21:00:00', 30, 0, datetime('now'), datetime('now'), NULL),
+-- Feb 23-24
+('te_012', 'usr_demo001', 'Authentication System', 'Deep Work', '2026-02-23T09:00:00', '2026-02-23T12:00:00', 180, 0, datetime('now'), datetime('now'), NULL),
+('te_013', 'usr_demo001', 'TypeScript Advanced Types', 'Learning', '2026-02-23T14:30:00', '2026-02-23T16:00:00', 90, 0, datetime('now'), datetime('now'), NULL),
+('te_014', 'usr_demo001', 'Morning Run', 'Exercise', '2026-02-24T06:30:00', '2026-02-24T07:15:00', 45, 0, datetime('now'), datetime('now'), NULL),
+('te_015', 'usr_demo001', 'Client Call - Feature Demo', 'Meeting', '2026-02-24T15:00:00', '2026-02-24T16:00:00', 60, 0, datetime('now'), datetime('now'), NULL),
+-- Feb 25-26
+('te_016', 'usr_demo001', 'Tauri Rust Commands', 'Deep Work', '2026-02-25T09:30:00', '2026-02-25T12:30:00', 180, 0, datetime('now'), datetime('now'), NULL),
+('te_017', 'usr_demo001', 'Reading: Psychology of Money', 'Reading', '2026-02-25T21:00:00', '2026-02-25T21:30:00', 30, 0, datetime('now'), datetime('now'), NULL),
+('te_018', 'usr_demo001', 'Morning Walk', 'Exercise', '2026-02-26T06:30:00', '2026-02-26T07:00:00', 30, 0, datetime('now'), datetime('now'), NULL),
+('te_019', 'usr_demo001', 'SQLite Query Optimization', 'Deep Work', '2026-02-26T10:00:00', '2026-02-26T12:00:00', 120, 0, datetime('now'), datetime('now'), NULL),
+-- Mar 2-3
+('te_020', 'usr_demo001', 'Habits Module Frontend', 'Deep Work', '2026-03-02T09:00:00', '2026-03-02T11:30:00', 150, 0, datetime('now'), datetime('now'), NULL),
+('te_021', 'usr_demo001', 'React Context API Lecture', 'Learning', '2026-03-02T14:00:00', '2026-03-02T15:30:00', 90, 0, datetime('now'), datetime('now'), NULL),
+('te_022', 'usr_demo001', 'Morning Run', 'Exercise', '2026-03-03T06:30:00', '2026-03-03T07:15:00', 45, 0, datetime('now'), datetime('now'), NULL),
+('te_023', 'usr_demo001', 'Goals Module Design', 'Deep Work', '2026-03-03T10:00:00', '2026-03-03T12:30:00', 150, 0, datetime('now'), datetime('now'), NULL),
+-- Mar 4-5
+('te_024', 'usr_demo001', 'Client Call - Sprint Planning', 'Meeting', '2026-03-04T11:00:00', '2026-03-04T12:00:00', 60, 0, datetime('now'), datetime('now'), NULL),
+('te_025', 'usr_demo001', 'Reading: Zero to One', 'Reading', '2026-03-04T21:00:00', '2026-03-04T21:30:00', 30, 0, datetime('now'), datetime('now'), NULL),
+('te_026', 'usr_demo001', 'Dashboard KPI Implementation', 'Deep Work', '2026-03-05T09:00:00', '2026-03-05T12:00:00', 180, 0, datetime('now'), datetime('now'), NULL),
+('te_027', 'usr_demo001', 'TanStack Query Patterns', 'Learning', '2026-03-05T15:00:00', '2026-03-05T16:00:00', 60, 0, datetime('now'), datetime('now'), NULL),
+-- Mar 6-7
+('te_028', 'usr_demo001', 'Morning Walk', 'Exercise', '2026-03-06T06:30:00', '2026-03-06T07:05:00', 35, 0, datetime('now'), datetime('now'), NULL),
+('te_029', 'usr_demo001', 'Chart Components', 'Deep Work', '2026-03-06T09:30:00', '2026-03-06T12:00:00', 150, 0, datetime('now'), datetime('now'), NULL),
+('te_030', 'usr_demo001', 'Recharts Integration', 'Deep Work', '2026-03-07T09:00:00', '2026-03-07T11:00:00', 120, 0, datetime('now'), datetime('now'), NULL),
+('te_031', 'usr_demo001', 'React Performance Patterns', 'Learning', '2026-03-07T14:00:00', '2026-03-07T15:30:00', 90, 0, datetime('now'), datetime('now'), NULL),
+-- Mar 9-10
+('te_032', 'usr_demo001', 'Morning Run', 'Exercise', '2026-03-09T06:30:00', '2026-03-09T07:15:00', 45, 0, datetime('now'), datetime('now'), NULL),
+('te_033', 'usr_demo001', 'Time Tracker Module', 'Deep Work', '2026-03-09T10:00:00', '2026-03-09T13:00:00', 180, 0, datetime('now'), datetime('now'), NULL),
+('te_034', 'usr_demo001', 'Client Demo Preparation', 'Meeting', '2026-03-10T14:00:00', '2026-03-10T15:00:00', 60, 0, datetime('now'), datetime('now'), NULL),
+('te_035', 'usr_demo001', 'Subscription Page Build', 'Deep Work', '2026-03-10T09:00:00', '2026-03-10T11:30:00', 150, 0, datetime('now'), datetime('now'), NULL),
+-- Mar 11-12
+('te_036', 'usr_demo001', 'Morning Walk', 'Exercise', '2026-03-11T06:30:00', '2026-03-11T07:00:00', 30, 0, datetime('now'), datetime('now'), NULL),
+('te_037', 'usr_demo001', 'Bug Fixes Sprint', 'Deep Work', '2026-03-11T09:00:00', '2026-03-11T12:30:00', 210, 0, datetime('now'), datetime('now'), NULL),
+('te_038', 'usr_demo001', 'Zustand Store Patterns', 'Learning', '2026-03-12T14:00:00', '2026-03-12T15:30:00', 90, 0, datetime('now'), datetime('now'), NULL),
+-- Mar 13-14
+('te_039', 'usr_demo001', 'Morning Run', 'Exercise', '2026-03-13T06:30:00', '2026-03-13T07:10:00', 40, 0, datetime('now'), datetime('now'), NULL),
+('te_040', 'usr_demo001', 'Seed Data Preparation', 'Deep Work', '2026-03-13T09:30:00', '2026-03-13T12:00:00', 150, 0, datetime('now'), datetime('now'), NULL),
+('te_041', 'usr_demo001', 'Client Call - Final Review', 'Meeting', '2026-03-14T11:00:00', '2026-03-14T12:00:00', 60, 0, datetime('now'), datetime('now'), NULL),
+('te_042', 'usr_demo001', 'Morning Walk', 'Exercise', '2026-03-17T06:30:00', '2026-03-17T07:05:00', 35, 0, datetime('now'), datetime('now'), NULL);
+
+-- ========== Notification prefs ==========
 INSERT INTO notification_prefs (user_id, enabled, budget_alerts, habit_reminders, bill_reminders, streak_alerts, weekly_summary, sync_status, quiet_start, quiet_end, budget_threshold_pct) VALUES
 ('usr_demo001', 1, 1, 1, 1, 1, 1, 1, '22:00', '07:00', 80);

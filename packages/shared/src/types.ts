@@ -345,8 +345,14 @@ export interface Goal {
   user_id: string;
   title: string;
   description: string | null;
+  /** 'money' | 'activity' */
+  goal_type: string;
   target_amount_minor: number;
   current_amount_minor: number;
+  /** For activity goals: numeric target count */
+  target_value: number | null;
+  /** For activity goals: unit label e.g. "lessons", "km", "books" */
+  unit_label: string | null;
   target_date: string | null;
   color: string;
   icon: string;

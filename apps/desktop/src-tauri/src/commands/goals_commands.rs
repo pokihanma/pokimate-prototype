@@ -17,8 +17,11 @@ pub struct Goal {
     pub user_id: String,
     pub title: String,
     pub description: Option<String>,
+    pub goal_type: String,
     pub target_amount_minor: i64,
     pub current_amount_minor: i64,
+    pub target_value: Option<i64>,
+    pub unit_label: Option<String>,
     pub target_date: Option<String>,
     pub color: String,
     pub icon: String,
@@ -31,7 +34,7 @@ pub struct Goal {
 pub fn goals_list(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Goal>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
-        "SELECT id, user_id, title, description, target_amount_minor, current_amount_minor, target_date, color, icon, is_active, created_at, updated_at FROM goals WHERE user_id = ?1 AND deleted_at IS NULL ORDER BY target_date, title"
+        "SELECT id, user_id, title, description, goal_type, target_amount_minor, current_amount_minor, target_value, unit_label, target_date, color, icon, is_active, created_at, updated_at FROM goals WHERE user_id = ?1 AND deleted_at IS NULL ORDER BY target_date, title"
     ).map_err(|e| e.to_string())?;
     let rows = stmt.query_map(params![user_id], |r| {
         Ok(Goal {
@@ -39,14 +42,17 @@ pub fn goals_list(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<
             user_id: r.get(1)?,
             title: r.get(2)?,
             description: r.get(3)?,
-            target_amount_minor: r.get(4)?,
-            current_amount_minor: r.get(5)?,
-            target_date: r.get(6)?,
-            color: r.get(7)?,
-            icon: r.get(8)?,
-            is_active: r.get(9)?,
-            created_at: r.get(10)?,
-            updated_at: r.get(11)?,
+            goal_type: r.get::<_, Option<String>>(4)?.unwrap_or_else(|| "money".to_string()),
+            target_amount_minor: r.get(5)?,
+            current_amount_minor: r.get(6)?,
+            target_value: r.get(7)?,
+            unit_label: r.get(8)?,
+            target_date: r.get(9)?,
+            color: r.get(10)?,
+            icon: r.get(11)?,
+            is_active: r.get(12)?,
+            created_at: r.get(13)?,
+            updated_at: r.get(14)?,
         })
     }).map_err(|e| e.to_string())?;
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
@@ -57,7 +63,10 @@ pub fn goals_create(
     user_id: String,
     title: String,
     description: Option<String>,
-    target_amount_minor: i64,
+    goal_type: Option<String>,
+    target_amount_minor: Option<i64>,
+    target_value: Option<i64>,
+    unit_label: Option<String>,
     target_date: Option<String>,
     color: Option<String>,
     icon: Option<String>,
@@ -68,19 +77,24 @@ pub fn goals_create(
     let now = db::now_iso();
     let color = color.unwrap_or_else(|| "#10B981".to_string());
     let icon = icon.unwrap_or_else(|| "target".to_string());
+    let goal_type = goal_type.unwrap_or_else(|| "money".to_string());
+    let target_amount = target_amount_minor.unwrap_or(0);
     conn.execute(
-        "INSERT INTO goals (id, user_id, title, description, target_amount_minor, current_amount_minor, target_date, color, icon, is_active, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, ?5, 0, ?6, ?7, ?8, 1, ?9, ?9, NULL)",
-        params![id, user_id, title, description, target_amount_minor, target_date, color, icon, now],
+        "INSERT INTO goals (id, user_id, title, description, goal_type, target_amount_minor, current_amount_minor, target_value, unit_label, target_date, color, icon, is_active, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, ?7, ?8, ?9, ?10, ?11, 1, ?12, ?12, NULL)",
+        params![id, user_id, title, description, goal_type, target_amount, target_value, unit_label, target_date, color, icon, now],
     ).map_err(|e| e.to_string())?;
-    let row_json = serde_json::json!({"id":id,"user_id":user_id,"title":title,"target_amount_minor":target_amount_minor,"current_amount_minor":0i64,"created_at":now,"updated_at":now,"deleted_at":null});
+    let row_json = serde_json::json!({"id":id,"user_id":user_id,"title":title,"goal_type":goal_type,"target_amount_minor":target_amount,"target_value":target_value,"unit_label":unit_label,"current_amount_minor":0i64,"created_at":now,"updated_at":now,"deleted_at":null});
     pending(&conn, "goals", "INSERT", &id, &row_json.to_string())?;
     Ok(Goal {
         id: id.clone(),
         user_id,
         title,
         description,
-        target_amount_minor,
+        goal_type,
+        target_amount_minor: target_amount,
         current_amount_minor: 0,
+        target_value,
+        unit_label,
         target_date,
         color,
         icon,

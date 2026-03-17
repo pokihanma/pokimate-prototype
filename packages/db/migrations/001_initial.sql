@@ -240,8 +240,11 @@ CREATE TABLE goals (
   user_id TEXT NOT NULL REFERENCES users(id),
   title TEXT NOT NULL,
   description TEXT,
-  target_amount_minor BIGINT NOT NULL,
+  goal_type TEXT NOT NULL DEFAULT 'money',   -- 'money' | 'activity'
+  target_amount_minor BIGINT NOT NULL DEFAULT 0,
   current_amount_minor BIGINT NOT NULL DEFAULT 0,
+  target_value INTEGER,                       -- for activity goals: numeric target
+  unit_label TEXT,                            -- for activity goals: "lessons", "km", "books"
   target_date TEXT,
   color TEXT NOT NULL DEFAULT '#10B981',
   icon TEXT NOT NULL DEFAULT 'target',

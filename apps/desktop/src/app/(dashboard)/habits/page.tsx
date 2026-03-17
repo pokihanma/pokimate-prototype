@@ -17,7 +17,6 @@ import type { Habit, HabitCheckin } from '@pokimate/shared';
 import {
   useHabits,
   useCreateHabit,
-  useUpsertCheckin,
   useSoftDeleteHabit,
 } from '@/hooks/useHabits';
 import { useAuthStore } from '@/store/auth';
@@ -40,6 +39,10 @@ const ICON_EMOJI_MAP: Record<string, string> = {
   'target': '🎯', 'water': '💧', 'zap': '⚡', 'apple': '🍎',
   'bike': '🚴', 'brain': '🧠', 'flame': '🔥', 'leaf': '🌿',
   'medkit': '🩺', 'pill': '💊', 'sleep': '😴', 'star': '⭐',
+  // extended map for seed data icons
+  'footprints': '🚶', 'book-open': '📖', 'walk': '🚶', 'meditate': '🧘',
+  'shield': '🛡️', 'laptop': '💻', 'plane': '✈️', 'droplets': '💧',
+  'utensils': '🍽️', 'ban': '🚫', 'weight': '⚖️', 'barbell': '🏋️',
 };
 
 const PRESET_COLORS = [
@@ -63,27 +66,23 @@ function monthRange(year: number, month: number) {
 }
 
 function computeStreak(checkins: HabitCheckin[], habitId: string): number {
-  const done = checkins
-    .filter((c) => c.habit_id === habitId && c.status === 'done')
-    .map((c) => c.checkin_date)
-    .sort()
-    .reverse();
-  let streak = 0;
   const today = todayStr();
+  const doneSet = new Set(
+    checkins
+      .filter((c) => c.habit_id === habitId && c.status === 'done')
+      .map((c) => c.checkin_date)
+  );
+  let streak = 0;
   let cursor = new Date(today);
-  cursor.setDate(cursor.getDate() - 1); // start from yesterday
-  for (const date of done) {
-    const cursorStr = cursor.toISOString().slice(0, 10);
-    if (date === cursorStr) {
-      streak++;
-      cursor.setDate(cursor.getDate() - 1);
-    } else if (date < cursorStr) {
-      break;
-    }
-  }
-  // also count today if done
-  if (checkins.some((c) => c.habit_id === habitId && c.checkin_date === today && c.status === 'done')) {
+  // include today if done
+  if (doneSet.has(today)) streak++;
+  // go backwards from yesterday
+  cursor.setDate(cursor.getDate() - 1);
+  while (true) {
+    const ds = cursor.toISOString().slice(0, 10);
+    if (!doneSet.has(ds)) break;
     streak++;
+    cursor.setDate(cursor.getDate() - 1);
   }
   return streak;
 }
@@ -91,18 +90,15 @@ function computeStreak(checkins: HabitCheckin[], habitId: string): number {
 function getCardBorderColor(checkins: HabitCheckin[], habitId: string): string {
   const today = todayStr();
   const todayCheckin = checkins.find((c) => c.habit_id === habitId && c.checkin_date === today);
-  if (todayCheckin?.status === 'done') return 'var(--chart-2)';
-  if (todayCheckin?.status === 'skip') return 'var(--chart-3)';
-  // Check if missed (yesterday had no done checkin)
+  if (todayCheckin?.status === 'done') return '#10b981';  // green
+  if (todayCheckin?.status === 'skip') return '#f59e0b';  // amber
+  // Check if yesterday was missed (habit exists and no done checkin)
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yd = yesterday.toISOString().slice(0, 10);
   const ydCheckin = checkins.find((c) => c.habit_id === habitId && c.checkin_date === yd);
-  if (!ydCheckin || ydCheckin.status === 'missed') {
-    // Only show red if the habit has been around for at least a day
-    return 'var(--border)';
-  }
-  return 'var(--border)';
+  if (ydCheckin?.status === 'missed') return '#ef4444';   // red = explicitly missed
+  return 'var(--border)';                                  // gray = pending
 }
 
 // ── AddHabitSheet ─────────────────────────────────────────────────────────────
@@ -129,11 +125,8 @@ function AddHabitSheet({ open, onOpenChange, editHabit }: AddHabitSheetProps) {
       setSelectedIcon(editHabit.icon);
       setSelectedColor(editHabit.color);
       setFrequency((editHabit.frequency as 'daily' | 'weekly') ?? 'daily');
-      try {
-        setTargetDays(JSON.parse(editHabit.target_days));
-      } catch {
-        setTargetDays([0, 1, 2, 3, 4, 5, 6]);
-      }
+      try { setTargetDays(JSON.parse(editHabit.target_days)); }
+      catch { setTargetDays([0, 1, 2, 3, 4, 5, 6]); }
       setReminderTime(editHabit.reminder_time ?? '');
     } else {
       setName('');
@@ -190,7 +183,6 @@ function AddHabitSheet({ open, onOpenChange, editHabit }: AddHabitSheetProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-5 p-5">
-          {/* Name */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Habit Name</label>
             <input
@@ -202,7 +194,6 @@ function AddHabitSheet({ open, onOpenChange, editHabit }: AddHabitSheetProps) {
             />
           </div>
 
-          {/* Icon picker */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Icon</label>
             <div className="grid grid-cols-8 gap-1.5">
@@ -224,7 +215,6 @@ function AddHabitSheet({ open, onOpenChange, editHabit }: AddHabitSheetProps) {
             </div>
           </div>
 
-          {/* Color picker */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Color</label>
             <div className="flex gap-2 flex-wrap">
@@ -244,7 +234,6 @@ function AddHabitSheet({ open, onOpenChange, editHabit }: AddHabitSheetProps) {
             </div>
           </div>
 
-          {/* Frequency */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Frequency</label>
             <div className="flex gap-2">
@@ -265,7 +254,6 @@ function AddHabitSheet({ open, onOpenChange, editHabit }: AddHabitSheetProps) {
             </div>
           </div>
 
-          {/* Target days */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Target Days</label>
             <div className="flex gap-1.5 flex-wrap">
@@ -286,7 +274,6 @@ function AddHabitSheet({ open, onOpenChange, editHabit }: AddHabitSheetProps) {
             </div>
           </div>
 
-          {/* Reminder time */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Reminder Time (optional)</label>
             <input
@@ -343,7 +330,7 @@ function MonthlyHeatmap({ year, month, checkins, habits }: HeatmapProps) {
   const getCellColor = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const dayCheckins = checkins.filter((c) => c.checkin_date === dateStr);
-    if (dayCheckins.length === 0) return 'var(--bg-overlay)';
+    if (dayCheckins.length === 0 || habits.length === 0) return 'var(--bg-overlay)';
     const done = dayCheckins.filter((c) => c.status === 'done').length;
     const rate = done / habits.length;
     if (rate >= 0.9) return 'var(--success)';
@@ -383,11 +370,7 @@ function MonthlyHeatmap({ year, month, checkins, habits }: HeatmapProps) {
       {tooltip && (
         <div
           className="fixed z-50 rounded-md px-2 py-1 text-xs text-white pointer-events-none"
-          style={{
-            background: 'var(--foreground)',
-            top: tooltip.y - 32,
-            left: tooltip.x,
-          }}
+          style={{ background: 'var(--foreground)', top: tooltip.y - 32, left: tooltip.x }}
         >
           {tooltip.date}
         </div>
@@ -421,22 +404,13 @@ function HabitContextMenu({ x, y, onSkip, onEdit, onDelete, onClose }: ContextMe
       style={{ background: 'var(--card)', top: y, left: x }}
       onClick={(e) => e.stopPropagation()}
     >
-      <button
-        onClick={() => { onSkip(); onClose(); }}
-        className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2"
-      >
+      <button onClick={() => { onSkip(); onClose(); }} className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2">
         <SkipForward size={14} /> Skip Today
       </button>
-      <button
-        onClick={() => { onEdit(); onClose(); }}
-        className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2"
-      >
+      <button onClick={() => { onEdit(); onClose(); }} className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2">
         <Pencil size={14} /> Edit
       </button>
-      <button
-        onClick={() => { onDelete(); onClose(); }}
-        className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2 text-destructive"
-      >
+      <button onClick={() => { onDelete(); onClose(); }} className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex items-center gap-2 text-destructive">
         <Trash2 size={14} /> Delete
       </button>
     </div>
@@ -453,9 +427,7 @@ export default function HabitsPage() {
   const [sheetOpen, setSheetOpen] = React.useState(false);
   const [editHabit, setEditHabit] = React.useState<Habit | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<Habit | null>(null);
-  const [contextMenu, setContextMenu] = React.useState<{
-    x: number; y: number; habit: Habit;
-  } | null>(null);
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; habit: Habit } | null>(null);
 
   const now = new Date();
   const [heatmapYear, setHeatmapYear] = React.useState(now.getFullYear());
@@ -466,12 +438,14 @@ export default function HabitsPage() {
 
   const habitsQuery = useHabits();
   const habits = habitsQuery.data ?? [];
+  const softDelete = useSoftDeleteHabit();
 
-  // Load all checkins for today (for card state) and the heatmap month
+  // Today's checkins — refreshed after each check-in action
   const [todayCheckins, setTodayCheckins] = React.useState<HabitCheckin[]>([]);
   const [monthCheckins, setMonthCheckins] = React.useState<HabitCheckin[]>([]);
+  const [checkinRefreshKey, setCheckinRefreshKey] = React.useState(0);
 
-  React.useEffect(() => {
+  const refreshTodayCheckins = React.useCallback(() => {
     if (!userId) return;
     invokeWithToast<HabitCheckin[]>('habits_list_checkins', {
       habit_id: '',
@@ -479,7 +453,11 @@ export default function HabitsPage() {
       from_date: today,
       to_date: today,
     }).then(setTodayCheckins).catch(() => {});
-  }, [userId, today, sheetOpen]);
+  }, [userId, today]);
+
+  React.useEffect(() => {
+    refreshTodayCheckins();
+  }, [refreshTodayCheckins, sheetOpen, checkinRefreshKey]);
 
   React.useEffect(() => {
     if (!userId) return;
@@ -489,10 +467,61 @@ export default function HabitsPage() {
       from_date: from,
       to_date: to,
     }).then(setMonthCheckins).catch(() => {});
-  }, [userId, from, to]);
+  }, [userId, from, to, checkinRefreshKey]);
 
-  const upsertCheckin = useUpsertCheckin();
-  const softDelete = useSoftDeleteHabit();
+  // Instant checkin handler with optimistic UI update
+  const handleCheckin = React.useCallback(async (habit: Habit, currentStatus: 'done' | 'skip' | 'missed' | undefined) => {
+    const date = today;
+    const newStatus: 'done' | 'missed' = currentStatus === 'done' ? 'missed' : 'done';
+
+    // Optimistic update — green border appears instantly
+    setTodayCheckins((prev) => {
+      const filtered = prev.filter((c) => !(c.habit_id === habit.id && c.checkin_date === date));
+      return [...filtered, {
+        id: '',
+        habit_id: habit.id,
+        user_id: userId,
+        checkin_date: date,
+        status: newStatus,
+        note: null,
+        created_at: new Date().toISOString(),
+      }];
+    });
+
+    try {
+      await invokeWithToast('habits_upsert_checkin', {
+        user_id: userId,
+        habit_id: habit.id,
+        checkin_date: date,
+        status: newStatus,
+      });
+      // Refresh both today and month checkins after server confirms
+      setCheckinRefreshKey((k) => k + 1);
+    } catch {
+      // Revert optimistic update on error
+      setTodayCheckins((prev) =>
+        prev.filter((c) => !(c.habit_id === habit.id && c.checkin_date === date && c.id === ''))
+      );
+    }
+  }, [today, userId]);
+
+  const handleSkip = React.useCallback(async (habit: Habit) => {
+    setTodayCheckins((prev) => {
+      const filtered = prev.filter((c) => !(c.habit_id === habit.id && c.checkin_date === today));
+      return [...filtered, { id: '', habit_id: habit.id, user_id: userId, checkin_date: today, status: 'skip', note: null, created_at: '' }];
+    });
+    try {
+      await invokeWithToast('habits_upsert_checkin', {
+        user_id: userId,
+        habit_id: habit.id,
+        checkin_date: today,
+        status: 'skip',
+      });
+      setCheckinRefreshKey((k) => k + 1);
+    } catch {
+      setTodayCheckins((prev) => prev.filter((c) => !(c.habit_id === habit.id && c.checkin_date === today && c.id === '')));
+    }
+  }, [today, userId]);
 
   React.useEffect(() => {
     setActions(
@@ -516,30 +545,14 @@ export default function HabitsPage() {
   }
 
   // ── Stats ──
+  const allCheckins = [...todayCheckins, ...monthCheckins];
   const thisMonthDone = monthCheckins.filter((c) => c.status === 'done').length;
   const totalPossible = habits.length * new Date(heatmapYear, heatmapMonth + 1, 0).getDate();
   const completionPct = totalPossible > 0 ? Math.round((thisMonthDone / totalPossible) * 100) : 0;
 
-  const allDoneForAllHabits = habits.flatMap((h) => {
-    const done = monthCheckins
-      .filter((c) => c.habit_id === h.id && c.status === 'done')
-      .map((c) => c.checkin_date)
-      .sort();
-    return done;
-  });
-
-  const longestStreak = (() => {
-    if (allDoneForAllHabits.length === 0) return 0;
-    let best = 1; let cur = 1;
-    for (let i = 1; i < allDoneForAllHabits.length; i++) {
-      const prev = new Date(allDoneForAllHabits[i - 1]);
-      const curr = new Date(allDoneForAllHabits[i]);
-      const diff = (curr.getTime() - prev.getTime()) / 86400000;
-      if (diff === 1) { cur++; best = Math.max(best, cur); }
-      else if (diff > 1) cur = 1;
-    }
-    return best;
-  })();
+  const longestStreak = habits.length > 0
+    ? Math.max(...habits.map((h) => computeStreak(allCheckins, h.id)))
+    : 0;
 
   const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -569,10 +582,8 @@ export default function HabitsPage() {
             {habits.map((habit) => {
               const todayCheckin = todayCheckins.find((c) => c.habit_id === habit.id && c.checkin_date === today);
               const isDone = todayCheckin?.status === 'done';
-              const streak = computeStreak([...todayCheckins, ...monthCheckins], habit.id);
-              const borderColor = isDone ? 'var(--chart-2)'
-                : todayCheckin?.status === 'skip' ? 'var(--chart-3)'
-                : 'var(--border)';
+              const streak = computeStreak(allCheckins, habit.id);
+              const borderColor = getCardBorderColor(todayCheckins, habit.id);
 
               return (
                 <div
@@ -593,34 +604,30 @@ export default function HabitsPage() {
                     className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
                     style={{ background: habit.color + '22' }}
                   >
-                    {ICON_EMOJI_MAP[habit.icon] ?? '•'}
+                    {ICON_EMOJI_MAP[habit.icon] ?? '✨'}
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-foreground truncate">{habit.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {streak > 0 && (
-                        <span>
-                          {streak >= 3 ? '🔥' : '🔆'} {streak} day streak
-                        </span>
+                      {streak > 0 ? (
+                        <span>{streak >= 3 ? '🔥' : '🔆'} {streak} day streak</span>
+                      ) : (
+                        'No streak yet'
                       )}
-                      {streak === 0 && 'No streak yet'}
                     </p>
                   </div>
 
-                  {/* Checkbox */}
+                  {/* Check button — green when done, shows checkmark */}
                   <button
-                    onClick={() => upsertCheckin.mutate({
-                      habit_id: habit.id,
-                      checkin_date: today,
-                      status: isDone ? 'missed' : 'done',
-                    })}
+                    onClick={() => handleCheckin(habit, todayCheckin?.status)}
                     className="h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0"
                     style={{
-                      borderColor: isDone ? 'var(--chart-2)' : 'var(--border)',
-                      background: isDone ? 'var(--chart-2)' : 'transparent',
+                      borderColor: isDone ? '#10b981' : 'var(--border)',
+                      background: isDone ? '#10b981' : 'transparent',
                     }}
+                    title={isDone ? 'Mark as not done' : 'Mark as done'}
                   >
                     {isDone && <Check size={16} color="#fff" />}
                   </button>
@@ -648,7 +655,6 @@ export default function HabitsPage() {
           className="rounded-xl p-5"
           style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
         >
-          {/* Month nav */}
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-sm">Monthly Heatmap</h3>
             <div className="flex items-center gap-2">
@@ -690,8 +696,8 @@ export default function HabitsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: 'Completion this month', value: `${completionPct}%` },
-            { label: 'Current streak', value: `${computeStreak([...todayCheckins, ...monthCheckins], habits[0]?.id ?? '')} days` },
-            { label: 'Best streak', value: `${longestStreak} days` },
+            { label: 'Best streak (any habit)', value: `${longestStreak} days` },
+            { label: 'Best streak (all-time)', value: `${longestStreak} days` },
             { label: 'Total check-ins', value: String(thisMonthDone) },
           ].map((stat) => (
             <div
@@ -712,11 +718,7 @@ export default function HabitsPage() {
           x={contextMenu.x}
           y={contextMenu.y}
           habit={contextMenu.habit}
-          onSkip={() => upsertCheckin.mutate({
-            habit_id: contextMenu.habit.id,
-            checkin_date: today,
-            status: 'skip',
-          })}
+          onSkip={() => handleSkip(contextMenu.habit)}
           onEdit={() => { setEditHabit(contextMenu.habit); setSheetOpen(true); }}
           onDelete={() => setDeleteTarget(contextMenu.habit)}
           onClose={() => setContextMenu(null)}
