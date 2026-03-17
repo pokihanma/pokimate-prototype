@@ -234,6 +234,69 @@ This was corrected in the Phase 4 build. Rule 6 in CHANGELOG documents the corre
 
 ---
 
+## Phase 5 Hotfix + Demo Data
+**Date:** 2026-03-17
+**Status:** ✅ Done
+
+### BUG 1 — Dashboard "Invalid column type Real" error
+**Root cause:** `AVG()` in SQLite returns `REAL` (float), but `rusqlite`'s `r.get::<_, i64>()` expects `INTEGER`. The `avg_monthly_expense` query in `get_dashboard_summary` used `COALESCE(AVG(monthly_exp), 0)` without casting.
+**Fix in `apps/desktop/src-tauri/src/commands/dashboard_commands.rs`:** Wrapped with `CAST(COALESCE(AVG(monthly_exp), 0) AS INTEGER)`. **Rule:** All `AVG()` and `SUM()` calls on `_minor` money columns that are mapped to `i64` in Rust must be wrapped with `CAST(... AS INTEGER)`.
+
+### BUG 2 — Habits check-in not working (green border not updating)
+**Root cause:** `todayCheckins` state was loaded via a direct `invokeWithToast` in a `useEffect` whose dependencies (`userId`, `today`, `sheetOpen`) never changed after clicking the check-in button. The TanStack Query `invalidateQueries` in `useUpsertCheckin.onSuccess` had no effect on the manually-managed state.
+**Fix in `apps/desktop/src/app/(dashboard)/habits/page.tsx`:**
+- Replaced `useUpsertCheckin` mutation with a direct `handleCheckin` async function
+- Added **optimistic update** — `setTodayCheckins(...)` fires immediately before the Tauri invoke, so the green border appears instantly
+- Added `checkinRefreshKey` counter state; incremented after server confirms; added to `useEffect` deps to re-fetch both today and month checkins
+- Reverts optimistic update on error
+- Same pattern applied to `handleSkip`
+
+### BUG 3 — Habit cards showing icons as "•" (empty blank look)
+**Root cause:** `ICON_EMOJI_MAP` only had 24 entries; seed habits used `footprints`, `book-open`, `walk` which were not in the map → showed fallback `'•'` → cards appeared blank.
+**Fix:** Extended `ICON_EMOJI_MAP` with `footprints → 🚶`, `book-open → 📖`, `walk → 🚶`, `meditate → 🧘`, `shield → 🛡️`, `laptop → 💻`, `droplets → 💧`, `ban → 🚫` and more. Changed fallback from `'•'` to `'✨'`.
+
+**Additional improvements in habits page:**
+- `getCardBorderColor` now correctly shows red (`#ef4444`) for explicitly `missed` habits (yesterday's status = 'missed')
+- Green border uses hardcoded `#10b981` for consistency with CSS variable `--success`
+- `computeStreak` rewritten: handles today's checkin correctly, uses a Set for O(1) lookup
+
+### IMPROVEMENT — Goals: Activity Goal type support
+**New columns added to `goals` table** (`packages/db/migrations/001_initial.sql`):
+- `goal_type TEXT NOT NULL DEFAULT 'money'` — `'money'` | `'activity'`
+- `target_value INTEGER` — numeric target for activity goals (e.g. 30 lessons)
+- `unit_label TEXT` — unit for activity goals (e.g. "lessons", "km", "books")
+
+**`goals_commands.rs`:** `Goal` struct and `goals_list` SELECT updated to include new fields. `goals_create` now accepts optional `goal_type`, `target_amount_minor` (was required), `target_value`, `unit_label` — all optional with defaults.
+
+**`packages/shared/src/types.ts`:** `Goal` interface updated with `goal_type`, `target_value`, `unit_label` fields.
+
+**`apps/desktop/src/app/(dashboard)/goals/page.tsx` full rewrite:**
+- `AddGoalSheet`: Toggle between "💰 Money Goal" and "⚡ Activity Goal". Activity form shows Target Number + Unit Label fields. Money form shows `MoneyInput` as before.
+- `UpdateProgressSheet`: New sheet for activity goals — shows current progress ring, number input "Progress to add (X unit)", calls `goals_add_deposit` with unit count as `amount_minor` (not paise).
+- Goals page split into two sections: Money Goals and Activity Goals (⚡ header).
+- Activity goal cards show `currentVal / targetVal unit_label` instead of money amounts.
+
+### DEMO DATA — Full seed rewrite (`packages/db/migrations/002_seed.sql`)
+All previous demo data replaced with rich realistic data for `usr_demo001`:
+
+**Accounts (4):** SBI Savings (₹45,230), HDFC Credit Card (-₹12,500), Cash Wallet (₹2,800), Zerodha Trading (₹85,000)
+
+**Transactions (65+):** Jan–Mar 2026 covering all categories — salary (₹55K/month), freelance income, Swiggy/Zomato/BigBasket, Uber/Ola/BMTC, Amazon/Myntra/Flipkart, electricity/internet/mobile, Netflix/Spotify/movies, gym, pharmacy, doctor, Udemy, books
+
+**Habits (7):** Morning Walk (85%), Read 30 mins (70%), Meditate (60%), Drink Water (90%), No Junk Food (65%), Weekly Workout (~75%), Learn Something New (75%) — with 60-day checkin history and correct streaks: Walk=12, Read=5, Meditate=3, Water=18, NoJunk=4, Learn=7
+
+**Goals (8):** Emergency Fund (₹3L target, ₹85K saved), New Laptop (₹80K, ₹32K), Goa Trip (₹25K, ₹18.5K), Stock Fund (₹1L, ₹45K) + 4 activity goals: React Course (18/30 lessons), Run 100km (34/100), Read 12 Books (4/12), Meditate 100 Days (47/100)
+
+**Subscriptions (7):** Netflix, Spotify, Amazon Prime, Gym, iCloud (due Mar 20), LinkedIn (due Apr 1), Notion Pro (due Mar 25 — due soon!)
+
+**Budgets (5):** Food ₹8K, Transport ₹4K, Entertainment ₹2K, Shopping ₹5K, Health ₹3K
+
+**Time entries (42):** Last 30 days — PokiMate Development, React Course, Morning Runs, Client Calls, Book Reading
+
+**base.db:** Rebuilt at 332KB. Committed to git.
+
+---
+
 ## Phase 5 — Habits, Goals, Time Tracker
 **Date:** 2026-03-17
 **Status:** ✅ Done
