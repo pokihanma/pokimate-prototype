@@ -14,7 +14,7 @@ import {
 import type { ColumnDef } from '@tanstack/react-table';
 import {
   TrendUp, TrendDown,
-  CurrencyDollar, CreditCard, Target, Activity, ChartBar, ArrowCircleDown,
+  CurrencyDollar, CreditCard, Target, Pulse, ChartBar, ArrowCircleDown,
   PlusCircle, CheckCircle, Timer, UploadSimple, ArrowsClockwise,
   Warning, Circle, CheckSquare,
   Clock,
@@ -342,7 +342,7 @@ export default function DashboardPage() {
         <KPICard
           title="Savings Rate"
           value={bpToPercent(kpis.savings_rate_bp)}
-          icon={<Activity size={18} />}
+          icon={<Pulse size={18} />}
           trend={bpToPercent(kpis.savings_rate_bp)}
           trendDirection={savingsTrend}
           color={kpis.savings_rate_bp >= 0 ? 'var(--chart-2)' : 'var(--chart-4)'}
