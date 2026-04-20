@@ -118,25 +118,29 @@ pub struct HabitCheckin {
 #[tauri::command(rename_all = "snake_case")]
 pub fn habits_list_checkins(
     habit_id: String,
+    user_id: Option<String>,
     from_date: Option<String>,
     to_date: Option<String>,
     state: State<'_, db::DbState>,
 ) -> Result<Vec<HabitCheckin>, String> {
     let conn = db::open(&state)?;
-    let sql = "SELECT id, habit_id, user_id, checkin_date, status, note, created_at FROM habit_checkins WHERE habit_id = ?1 AND (?2 IS NULL OR checkin_date >= ?2) AND (?3 IS NULL OR checkin_date <= ?3) ORDER BY checkin_date DESC";
-    let mut stmt = conn.prepare(sql).map_err(|e| e.to_string())?;
-    let rows = stmt.query_map(params![habit_id, from_date, to_date], |r| {
-        Ok(HabitCheckin {
-            id: r.get(0)?,
-            habit_id: r.get(1)?,
-            user_id: r.get(2)?,
-            checkin_date: r.get(3)?,
-            status: r.get(4)?,
-            note: r.get(5)?,
-            created_at: r.get(6)?,
-        })
-    }).map_err(|e| e.to_string())?;
-    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+    // Empty habit_id means "all habits for this user" — used by the habits page overview
+    let rows: Vec<HabitCheckin> = if habit_id.is_empty() {
+        let sql = "SELECT id, habit_id, user_id, checkin_date, status, note, created_at FROM habit_checkins WHERE (?1 IS NULL OR user_id = ?1) AND (?2 IS NULL OR checkin_date >= ?2) AND (?3 IS NULL OR checkin_date <= ?3) ORDER BY checkin_date DESC";
+        let mut stmt = conn.prepare(sql).map_err(|e| e.to_string())?;
+        let rows = stmt.query_map(params![user_id, from_date, to_date], |r| {
+            Ok(HabitCheckin { id: r.get(0)?, habit_id: r.get(1)?, user_id: r.get(2)?, checkin_date: r.get(3)?, status: r.get(4)?, note: r.get(5)?, created_at: r.get(6)? })
+        }).map_err(|e| e.to_string())?;
+        rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?
+    } else {
+        let sql = "SELECT id, habit_id, user_id, checkin_date, status, note, created_at FROM habit_checkins WHERE habit_id = ?1 AND (?2 IS NULL OR checkin_date >= ?2) AND (?3 IS NULL OR checkin_date <= ?3) ORDER BY checkin_date DESC";
+        let mut stmt = conn.prepare(sql).map_err(|e| e.to_string())?;
+        let rows = stmt.query_map(params![habit_id, from_date, to_date], |r| {
+            Ok(HabitCheckin { id: r.get(0)?, habit_id: r.get(1)?, user_id: r.get(2)?, checkin_date: r.get(3)?, status: r.get(4)?, note: r.get(5)?, created_at: r.get(6)? })
+        }).map_err(|e| e.to_string())?;
+        rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?
+    };
+    Ok(rows)
 }
 
 #[tauri::command(rename_all = "snake_case")]
