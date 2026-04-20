@@ -74,7 +74,8 @@ fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
         // ALTER TABLE ignores IF NOT EXISTS — use column existence check instead
         let goals_cols: Vec<String> = {
             let mut stmt = conn.prepare("PRAGMA table_info(goals)")?;
-            stmt.query_map([], |r| r.get::<_, String>(1))?.filter_map(|r| r.ok()).collect()
+            let x: Vec<String> = stmt.query_map([], |r| r.get::<_, String>(1))?.filter_map(|r| r.ok()).collect();
+            x
         };
         if !goals_cols.iter().any(|c| c == "reward_title") {
             conn.execute_batch("ALTER TABLE goals ADD COLUMN reward_title TEXT;")?;
@@ -90,7 +91,8 @@ fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
         }
         let habits_cols: Vec<String> = {
             let mut stmt = conn.prepare("PRAGMA table_info(habits)")?;
-            stmt.query_map([], |r| r.get::<_, String>(1))?.filter_map(|r| r.ok()).collect()
+            let x: Vec<String> = stmt.query_map([], |r| r.get::<_, String>(1))?.filter_map(|r| r.ok()).collect();
+            x
         };
         if !habits_cols.iter().any(|c| c == "reminder_enabled") {
             conn.execute_batch("ALTER TABLE habits ADD COLUMN reminder_enabled INTEGER NOT NULL DEFAULT 0;")?;
