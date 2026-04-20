@@ -1,78 +1,66 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SyncStatusBadge } from './SyncStatusBadge';
 import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 import { UserMenu } from './UserMenu';
+import { useTopbarActions } from './TopbarActionsContext';
 
-interface TopbarProps {
-  syncOpen: () => void;
-  notificationOpen: () => void;
-  /** Optional slot rendered between breadcrumb and action buttons — used by dashboard for month picker */
-  actions?: React.ReactNode;
-}
-
-const routeTitles: Record<string, string> = {
-  dashboard: 'Dashboard',
-  finance: 'Finance',
-  'finance/transactions': 'Transactions',
-  'finance/budgets': 'Budgets',
-  'finance/debts': 'Debts',
-  'finance/investments': 'Investments',
-  habits: 'Habits',
-  goals: 'Goals',
-  time: 'Time',
-  subscriptions: 'Subscriptions',
-  settings: 'Settings',
+const PAGE_TITLES: Record<string, { title: string; breadcrumb?: string }> = {
+  '/dashboard': { title: 'Dashboard' },
+  '/finance/accounts': { title: 'Accounts', breadcrumb: 'Finance / accounts' },
+  '/finance/transactions': { title: 'Transactions', breadcrumb: 'Finance / transactions' },
+  '/finance/budgets': { title: 'Budgets', breadcrumb: 'Finance / budgets' },
+  '/finance/debts': { title: 'Debts', breadcrumb: 'Finance / debts' },
+  '/finance/investments': { title: 'Investments', breadcrumb: 'Finance / investments' },
+  '/habits': { title: 'Habits' },
+  '/goals': { title: 'Goals' },
+  '/time': { title: 'Time Tracker' },
+  '/subscriptions': { title: 'Subscriptions' },
+  '/settings': { title: 'Settings' },
 };
 
-function getBreadcrumb(pathname: string): { path: string; label: string }[] {
-  const segments = pathname.replace(/^\/+/, '').split('/').filter(Boolean);
-  const out: { path: string; label: string }[] = [];
-  let acc = '';
-  for (const seg of segments) {
-    acc += (acc ? '/' : '') + seg;
-    out.push({ path: '/' + acc, label: routeTitles[seg] ?? seg });
-  }
-  return out;
-}
-
-export function Topbar({ syncOpen, notificationOpen, actions }: TopbarProps) {
+export function Topbar() {
   const pathname = usePathname();
-  const breadcrumb = getBreadcrumb(pathname);
-  const title = breadcrumb.length > 0 ? breadcrumb[breadcrumb.length - 1].label : 'Dashboard';
+  const { actions } = useTopbarActions();
+
+  const pageInfo = PAGE_TITLES[pathname] ?? { title: pathname.split('/').pop() ?? 'PokiMate' };
 
   return (
     <header
-      className="h-14 border-b border-border flex items-center justify-between px-4 shrink-0"
-      style={{ background: 'var(--card)' }}
+      className="flex items-center gap-4 px-4 border-b"
+      style={{
+        height: 56,
+        background: 'var(--background)',
+        borderColor: 'var(--border)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
+      }}
     >
-      <div className="flex items-center gap-3">
-        <h1 className="font-semibold text-lg">{title}</h1>
-        {breadcrumb.length > 1 && (
-          <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-            {breadcrumb.map(({ path, label }, i) => (
-              <span key={path} className="flex items-center gap-1">
-                {i > 0 && <span>/</span>}
-                <Link href={path} className="hover:text-foreground">
-                  {label}
-                </Link>
-              </span>
-            ))}
-          </nav>
-        )}
+      {/* Page title */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-base font-semibold truncate" style={{ color: 'var(--foreground)' }}>
+            {pageInfo.title}
+          </h1>
+          {pageInfo.breadcrumb && (
+            <span className="text-xs hidden sm:block" style={{ color: 'var(--muted-foreground)' }}>
+              {pageInfo.breadcrumb}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        {actions}
-        <div className="flex items-center gap-1">
-          <SyncStatusBadge status="synced" onOpenPanel={syncOpen} />
-          <NotificationBell count={0} onOpen={notificationOpen} />
-          <ThemeToggle />
-          <UserMenu />
-        </div>
+      {/* Injected page actions (e.g. + Add button) */}
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
+
+      {/* Right controls */}
+      <div className="flex items-center gap-1">
+        <SyncStatusBadge />
+        <NotificationBell />
+        <ThemeToggle />
       </div>
     </header>
   );

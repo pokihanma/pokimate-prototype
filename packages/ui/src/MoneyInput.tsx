@@ -1,8 +1,7 @@
 'use client';
-
 import * as React from 'react';
 
-export interface MoneyInputProps {
+interface MoneyInputProps {
   valuePaise?: bigint;
   onChange: (paise: bigint) => void;
   className?: string;
@@ -17,39 +16,45 @@ export function MoneyInput({
   placeholder = '0.00',
   disabled = false,
 }: MoneyInputProps) {
-  const [display, setDisplay] = React.useState(() => {
-    if (!valuePaise || valuePaise === BigInt(0)) return '';
-    return (Number(valuePaise) / 100).toFixed(2);
-  });
-
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const isFocused = React.useRef(false);
 
-  // Only sync external valuePaise into display when the input is NOT focused
-  // (e.g. when editing an existing record opens the sheet)
+  // Convert paise to display string
+  const paiseToDisplay = (p: bigint | undefined): string => {
+    if (!p || p === BigInt(0)) return '';
+    return (Number(p) / 100).toFixed(2);
+  };
+
+  const [display, setDisplay] = React.useState(() => paiseToDisplay(valuePaise));
+
+  // Sync from external valuePaise changes only when not focused
   React.useEffect(() => {
-    if (document.activeElement !== inputRef.current) {
-      if (!valuePaise || valuePaise === BigInt(0)) {
-        setDisplay('');
-      } else {
-        setDisplay((Number(valuePaise) / 100).toFixed(2));
-      }
+    if (!isFocused.current) {
+      setDisplay(paiseToDisplay(valuePaise));
     }
   }, [valuePaise]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    // Allow digits with at most one decimal point and up to 2 decimal places
-    if (!/^\d*\.?\d{0,2}$/.test(raw)) return;
+    // Allow empty, digits, and one decimal with up to 2 places
+    if (raw !== '' && !/^\d*\.?\d{0,2}$/.test(raw)) return;
     setDisplay(raw);
     const rupees = parseFloat(raw);
-    if (isNaN(rupees)) {
+    if (isNaN(rupees) || raw === '') {
       onChange(BigInt(0));
     } else {
       onChange(BigInt(Math.round(rupees * 100)));
     }
   };
 
+  const handleFocus = () => {
+    isFocused.current = true;
+    // Select all text on focus for easy replacement
+    setTimeout(() => inputRef.current?.select(), 0);
+  };
+
   const handleBlur = () => {
+    isFocused.current = false;
     const rupees = parseFloat(display);
     if (!isNaN(rupees) && rupees > 0) {
       setDisplay(rupees.toFixed(2));
@@ -66,15 +71,11 @@ export function MoneyInput({
       inputMode="decimal"
       value={display}
       onChange={handleChange}
+      onFocus={handleFocus}
       onBlur={handleBlur}
       placeholder={placeholder}
       disabled={disabled}
       className={className}
-      style={{
-        background: 'var(--background)',
-        color: 'var(--foreground)',
-        borderColor: 'var(--border)',
-      }}
     />
   );
 }

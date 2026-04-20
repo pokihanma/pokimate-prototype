@@ -37,7 +37,7 @@ export function useCreateGoal() {
       target_amount_minor?: number;
       target_value?: number;
       unit_label?: string;
-      target_date?: string;
+      target_date?: string | null;
       color?: string;
       icon?: string;
     }) =>
@@ -54,10 +54,10 @@ export function useAddDeposit() {
       goal_id: string;
       amount_minor: number;
       note?: string;
-      deposit_date: string;
     }) =>
       invokeWithToast<GoalDeposit>('goals_add_deposit', {
         user_id: user?.user_id,
+        deposit_date: new Date().toISOString().split('T')[0], // always today
         ...args,
       }),
     onSuccess: () => {

@@ -1,40 +1,36 @@
+'use client';
 import * as React from 'react';
 
-export interface EmptyStateProps {
-  icon: React.ReactNode;
+interface EmptyStateProps {
+  icon?: React.ReactNode;
   title: string;
-  description: string;
+  description?: string;
   action?: React.ReactNode;
   className?: string;
 }
 
-export function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-  className = '',
-}: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action, className = '' }: EmptyStateProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}
+      className={`flex flex-col items-center justify-center text-center py-16 px-6 ${className}`}
     >
-      <div
-        className="mb-4 opacity-60"
-        style={{ color: 'var(--muted-foreground)' }}
-      >
-        {icon}
-      </div>
-      <h3 className="font-semibold text-lg" style={{ color: 'var(--foreground)' }}>
+      {icon && (
+        <div
+          className="mb-4 rounded-2xl p-5"
+          style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}
+        >
+          {icon}
+        </div>
+      )}
+      <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--foreground)' }}>
         {title}
       </h3>
-      <p
-        className="mt-1 text-sm max-w-sm"
-        style={{ color: 'var(--muted-foreground)' }}
-      >
-        {description}
-      </p>
-      {action && <div className="mt-4">{action}</div>}
+      {description && (
+        <p className="text-sm mb-6 max-w-xs" style={{ color: 'var(--muted-foreground)' }}>
+          {description}
+        </p>
+      )}
+      {action}
     </div>
   );
 }

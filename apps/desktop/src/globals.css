@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 
-/* Map CSS variables to Tailwind theme for bg-*, text-*, border-*, etc. */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+/* Map CSS variables to Tailwind theme */
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -28,72 +30,210 @@
   --color-chart-5: var(--chart-5);
 }
 
-/* --- Theme: CSS variables only. No hardcoded hex in components. --- */
-
+/* ── Light Theme ──────────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f9fc;
+  --foreground: #0d0f1a;
   --card: #ffffff;
-  --card-foreground: #171717;
-  --border: #e5e5e5;
-  --primary: #5b6cf9;
+  --card-foreground: #0d0f1a;
+  --border: #e8eaf0;
+  --primary: #4f46e5;
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #262626;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --accent: #f5f5f5;
-  --accent-foreground: #262626;
+  --primary-glow: rgba(79, 70, 229, 0.15);
+  --secondary: #f1f3f9;
+  --secondary-foreground: #374151;
+  --muted: #f1f3f9;
+  --muted-foreground: #6b7280;
+  --accent: #eef2ff;
+  --accent-foreground: #4f46e5;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --ring: #5b6cf9;
-  --sidebar-background: #fafafa;
-  --sidebar-foreground: #171717;
-  --input: #e5e5e5;
-  --chart-1: #5b6cf9;
+  --ring: #4f46e5;
+  --sidebar-background: #ffffff;
+  --sidebar-foreground: #0d0f1a;
+  --input: #e8eaf0;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --chart-1: #4f46e5;
   --chart-2: #10b981;
   --chart-3: #f59e0b;
   --chart-4: #ef4444;
   --chart-5: #8b5cf6;
-  --success: #10b981;
-  --bg-overlay: rgba(0, 0, 0, 0.06);
+  --bg-overlay: rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --card-shadow-hover: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
 }
 
+/* ── Dark Theme (Default — CRED/Zerodha style premium dark) ─────────────── */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --card: #171717;
-  --card-foreground: #ededed;
-  --border: #262626;
-  --primary: #5b6cf9;
+  --background: #080b14;
+  --foreground: #eef0ff;
+  --card: #0e1320;
+  --card-foreground: #eef0ff;
+  --border: rgba(255, 255, 255, 0.07);
+  --primary: #6366f1;
   --primary-foreground: #ffffff;
-  --secondary: #262626;
-  --secondary-foreground: #ededed;
-  --muted: #262626;
-  --muted-foreground: #a3a3a3;
-  --accent: #262626;
-  --accent-foreground: #ededed;
-  --destructive: #dc2626;
+  --primary-glow: rgba(99, 102, 241, 0.2);
+  --secondary: #131827;
+  --secondary-foreground: #a8b0cc;
+  --muted: #131827;
+  --muted-foreground: #636b8a;
+  --accent: rgba(99, 102, 241, 0.1);
+  --accent-foreground: #818cf8;
+  --destructive: #f43f5e;
   --destructive-foreground: #ffffff;
-  --ring: #5b6cf9;
-  --sidebar-background: #0f0f0f;
-  --sidebar-foreground: #ededed;
-  --input: #262626;
-  --chart-1: #5b6cf9;
+  --ring: #6366f1;
+  --sidebar-background: #060910;
+  --sidebar-foreground: #eef0ff;
+  --input: #1a2035;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --info: #38bdf8;
+  --chart-1: #6366f1;
   --chart-2: #10b981;
   --chart-3: #f59e0b;
-  --chart-4: #ef4444;
-  --chart-5: #8b5cf6;
-  --success: #10b981;
-  --bg-overlay: rgba(255, 255, 255, 0.08);
+  --chart-4: #f43f5e;
+  --chart-5: #a78bfa;
+  --bg-overlay: rgba(255, 255, 255, 0.04);
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --card-shadow-hover: 0 8px 24px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
 }
 
-/* Smooth theme transitions */
+/* ── Global Base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 * {
-  transition: background-color 0.2s, border-color 0.15s;
+  transition: background-color 0.2s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+html {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  line-height: 1.5;
 }
+
+/* Monospace for numbers/amounts */
+.font-mono, .tabular-nums {
+  font-family: 'DM Mono', 'Fira Code', monospace;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+/* ── Card base ───────────────────────────────────────────────────────────── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--primary);
+}
+
+/* ── Glow effects ────────────────────────────────────────────────────────── */
+.glow-primary {
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+/* ── Input base ──────────────────────────────────────────────────────────── */
+input, select, textarea {
+  background: var(--input);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* ── Number animation ────────────────────────────────────────────────────── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-count {
+  animation: countUp 0.4s ease forwards;
+}
+
+/* ── Shimmer animation ───────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    var(--border) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Fade in ─────────────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* ── Slide in from right ─────────────────────────────────────────────────── */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.25s ease forwards;
+}
+
+/* ── Income/Expense colors ───────────────────────────────────────────────── */
+.text-income { color: var(--success); }
+.text-expense { color: var(--destructive); }
+
+/* ── Badge styles ────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.badge-primary { background: var(--accent); color: var(--primary); }
+.badge-success { background: rgba(16, 185, 129, 0.12); color: var(--success); }
+.badge-warning { background: rgba(245, 158, 11, 0.12); color: var(--warning); }
+.badge-danger { background: rgba(244, 63, 94, 0.12); color: var(--destructive); }
+.badge-demo { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.badge-admin { background: var(--accent); color: var(--primary); }
