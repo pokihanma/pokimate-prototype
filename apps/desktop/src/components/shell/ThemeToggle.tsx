@@ -1,7 +1,7 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { Sun, Monitor, Moon } from 'lucide-react';
+import { Sun, Monitor, Moon } from '@phosphor-icons/react';
 
 type ThemeMode = 'light' | 'system' | 'dark';
 

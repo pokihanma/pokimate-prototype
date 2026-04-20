@@ -26,6 +26,12 @@ pub struct Goal {
     pub color: String,
     pub icon: String,
     pub is_active: i32,
+    // Reward fields (migration 003)
+    pub reward_title: Option<String>,
+    pub reward_emoji: Option<String>,
+    // Reminder fields (migration 003)
+    pub reminder_date: Option<String>,
+    pub reminder_time: Option<String>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -34,7 +40,10 @@ pub struct Goal {
 pub fn goals_list(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<Goal>, String> {
     let conn = db::open(&state)?;
     let mut stmt = conn.prepare(
-        "SELECT id, user_id, title, description, goal_type, target_amount_minor, current_amount_minor, target_value, unit_label, target_date, color, icon, is_active, created_at, updated_at FROM goals WHERE user_id = ?1 AND deleted_at IS NULL ORDER BY target_date, title"
+        "SELECT id, user_id, title, description, goal_type, target_amount_minor, current_amount_minor, \
+         target_value, unit_label, target_date, color, icon, is_active, \
+         reward_title, reward_emoji, reminder_date, reminder_time, created_at, updated_at \
+         FROM goals WHERE user_id = ?1 AND deleted_at IS NULL ORDER BY target_date, title"
     ).map_err(|e| e.to_string())?;
     let rows = stmt.query_map(params![user_id], |r| {
         Ok(Goal {
@@ -51,8 +60,12 @@ pub fn goals_list(user_id: String, state: State<'_, db::DbState>) -> Result<Vec<
             color: r.get(10)?,
             icon: r.get(11)?,
             is_active: r.get(12)?,
-            created_at: r.get(13)?,
-            updated_at: r.get(14)?,
+            reward_title: r.get(13)?,
+            reward_emoji: r.get(14)?,
+            reminder_date: r.get(15)?,
+            reminder_time: r.get(16)?,
+            created_at: r.get(17)?,
+            updated_at: r.get(18)?,
         })
     }).map_err(|e| e.to_string())?;
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
@@ -70,6 +83,10 @@ pub fn goals_create(
     target_date: Option<String>,
     color: Option<String>,
     icon: Option<String>,
+    reward_title: Option<String>,
+    reward_emoji: Option<String>,
+    reminder_date: Option<String>,
+    reminder_time: Option<String>,
     state: State<'_, db::DbState>,
 ) -> Result<Goal, String> {
     let conn = db::open(&state)?;
@@ -80,10 +97,22 @@ pub fn goals_create(
     let goal_type = goal_type.unwrap_or_else(|| "money".to_string());
     let target_amount = target_amount_minor.unwrap_or(0);
     conn.execute(
-        "INSERT INTO goals (id, user_id, title, description, goal_type, target_amount_minor, current_amount_minor, target_value, unit_label, target_date, color, icon, is_active, created_at, updated_at, deleted_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, ?7, ?8, ?9, ?10, ?11, 1, ?12, ?12, NULL)",
-        params![id, user_id, title, description, goal_type, target_amount, target_value, unit_label, target_date, color, icon, now],
+        "INSERT INTO goals (id, user_id, title, description, goal_type, target_amount_minor, current_amount_minor, \
+         target_value, unit_label, target_date, color, icon, is_active, \
+         reward_title, reward_emoji, reminder_date, reminder_time, created_at, updated_at, deleted_at) \
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, 0, ?7, ?8, ?9, ?10, ?11, 1, ?12, ?13, ?14, ?15, ?16, ?16, NULL)",
+        params![id, user_id, title, description, goal_type, target_amount,
+                target_value, unit_label, target_date, color, icon,
+                reward_title, reward_emoji, reminder_date, reminder_time, now],
     ).map_err(|e| e.to_string())?;
-    let row_json = serde_json::json!({"id":id,"user_id":user_id,"title":title,"goal_type":goal_type,"target_amount_minor":target_amount,"target_value":target_value,"unit_label":unit_label,"current_amount_minor":0i64,"created_at":now,"updated_at":now,"deleted_at":null});
+    let row_json = serde_json::json!({
+        "id": id, "user_id": user_id, "title": title, "goal_type": goal_type,
+        "target_amount_minor": target_amount, "target_value": target_value,
+        "unit_label": unit_label, "current_amount_minor": 0i64,
+        "reward_title": reward_title, "reward_emoji": reward_emoji,
+        "reminder_date": reminder_date, "reminder_time": reminder_time,
+        "created_at": now, "updated_at": now, "deleted_at": null
+    });
     pending(&conn, "goals", "INSERT", &id, &row_json.to_string())?;
     Ok(Goal {
         id: id.clone(),
@@ -99,6 +128,10 @@ pub fn goals_create(
         color,
         icon,
         is_active: 1,
+        reward_title,
+        reward_emoji,
+        reminder_date,
+        reminder_time,
         created_at: now.clone(),
         updated_at: now,
     })
@@ -109,7 +142,7 @@ pub fn goals_soft_delete(id: String, state: State<'_, db::DbState>) -> Result<()
     let conn = db::open(&state)?;
     let now = db::now_iso();
     conn.execute("UPDATE goals SET deleted_at = ?1, updated_at = ?1 WHERE id = ?2", params![now, id]).map_err(|e| e.to_string())?;
-    let row_json = serde_json::json!({"id":id,"deleted_at":now});
+    let row_json = serde_json::json!({"id": id, "deleted_at": now});
     pending(&conn, "goals", "DELETE", &id, &row_json.to_string())?;
     Ok(())
 }
@@ -145,19 +178,11 @@ pub fn goals_add_deposit(
         "UPDATE goals SET current_amount_minor = current_amount_minor + ?1, updated_at = ?2 WHERE id = ?3 AND deleted_at IS NULL",
         params![amount_minor, now, goal_id],
     ).map_err(|e| e.to_string())?;
-    let row_json_dep = serde_json::json!({"id":id,"goal_id":goal_id,"user_id":user_id,"amount_minor":amount_minor,"deposit_date":deposit_date,"created_at":now});
+    let row_json_dep = serde_json::json!({"id": id, "goal_id": goal_id, "user_id": user_id, "amount_minor": amount_minor, "deposit_date": deposit_date, "created_at": now});
     pending(&conn, "goal_deposits", "INSERT", &id, &row_json_dep.to_string())?;
-    let row_json_goal = serde_json::json!({"id":goal_id,"current_amount_minor_inc":amount_minor,"updated_at":now});
+    let row_json_goal = serde_json::json!({"id": goal_id, "current_amount_minor_inc": amount_minor, "updated_at": now});
     pending(&conn, "goals", "UPDATE", &goal_id, &row_json_goal.to_string())?;
-    Ok(GoalDeposit {
-        id,
-        goal_id,
-        user_id,
-        amount_minor,
-        note,
-        deposit_date,
-        created_at: now,
-    })
+    Ok(GoalDeposit { id, goal_id, user_id, amount_minor, note, deposit_date, created_at: now })
 }
 
 #[tauri::command(rename_all = "snake_case")]

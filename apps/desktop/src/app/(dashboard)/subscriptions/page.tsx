@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { LoadingShimmer, EmptyState, MoneyInput, MoneyDisplay } from '@pokimate/ui';
-import { CalendarClock } from 'lucide-react';
+import { CalendarCheck } from '@phosphor-icons/react';
 import type { Subscription } from '@pokimate/shared';
 import { formatINR } from '@pokimate/shared';
 import { useSubscriptions, useCreateSubscription, useUpdateSubscription } from '@/hooks/useSubscriptions';
@@ -195,7 +195,7 @@ export default function SubscriptionsPage() {
               across {subscriptions.length} subscription{subscriptions.length !== 1 ? 's' : ''} · normalized to monthly
             </p>
           </div>
-          <CalendarClock size={40} style={{ color: 'var(--muted-foreground)', opacity: 0.4 }} />
+          <CalendarCheck size={40} style={{ color: 'var(--muted-foreground)', opacity: 0.4 }} />
         </div>
       )}
 
@@ -205,7 +205,7 @@ export default function SubscriptionsPage() {
         </div>
       ) : subscriptions.length === 0 ? (
         <EmptyState
-          icon={<CalendarClock size={48} />}
+          icon={<CalendarCheck size={48} />}
           title="No subscriptions"
           description="Track your recurring subscriptions and get renewal reminders before they're due."
           action={

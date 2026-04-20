@@ -5,11 +5,11 @@ import {
   Clock,
   Plus,
   Square,
-  Pencil,
-  Trash2,
+  PencilSimple,
+  Trash,
   Check,
   X,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { LoadingShimmer, EmptyState, ConfirmDialog } from '@pokimate/ui';
 import type { TimeEntry } from '@pokimate/shared';
 import {
@@ -637,13 +637,13 @@ export default function TimePage() {
                               onClick={() => setEditingId(entry.id)}
                               className="rounded-md p-1.5 hover:bg-muted text-muted-foreground flex-shrink-0"
                             >
-                              <Pencil size={13} />
+                              <PencilSimple size={13} />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(entry)}
                               className="rounded-md p-1.5 hover:bg-muted text-destructive flex-shrink-0"
                             >
-                              <Trash2 size={13} />
+                              <Trash size={13} />
                             </button>
                           </>
                         )}

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { LoadingShimmer, EmptyState, MoneyInput } from '@pokimate/ui';
-import { CreditCard } from 'lucide-react';
+import { CreditCard } from '@phosphor-icons/react';
 import type { Debt } from '@pokimate/shared';
 import { useDebts, useCreateDebt, useUpdateDebt } from '@/hooks/useDebts';
 import { useTopbarActions } from '@/components/shell/TopbarActionsContext';

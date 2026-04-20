@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { LogOut, User } from 'lucide-react';
+import { SignOut, UserCircle } from '@phosphor-icons/react';
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
 
@@ -87,14 +87,14 @@ export function UserMenu() {
             className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
             onClick={() => setOpen(false)}
           >
-            <User size={14} /> Impersonate (Phase 7)
+            <UserCircle size={14} /> Impersonate (Phase 7)
           </button>
           <button
             type="button"
             className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted text-destructive"
             onClick={handleLogout}
           >
-            <LogOut size={14} /> Log out
+            <SignOut size={14} /> Log out
           </button>
         </div>
       )}

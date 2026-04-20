@@ -357,6 +357,14 @@ export interface Goal {
   color: string;
   icon: string;
   is_active: number;
+  /** Reward shown when goal is completed — e.g. "New shoes", "Bike ride" */
+  reward_title: string | null;
+  /** Emoji for the reward — e.g. "👟", "🚴" */
+  reward_emoji: string | null;
+  /** Date to show reminder notification (YYYY-MM-DD) */
+  reminder_date: string | null;
+  /** Time of day for reminder HH:MM, defaults to 09:00 */
+  reminder_time: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

@@ -40,6 +40,10 @@ export function useCreateGoal() {
       target_date?: string | null;
       color?: string;
       icon?: string;
+      reward_title?: string;
+      reward_emoji?: string;
+      reminder_date?: string;
+      reminder_time?: string;
     }) =>
       invokeWithToast<Goal>('goals_create', { user_id: user?.user_id, ...args }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['goals'] }),

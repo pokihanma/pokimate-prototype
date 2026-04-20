@@ -4,7 +4,7 @@ import * as React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable, LoadingShimmer, EmptyState, KPICard, MoneyDisplay } from '@pokimate/ui';
-import { TrendingUp } from 'lucide-react';
+import { TrendUp } from '@phosphor-icons/react';
 import type { HoldingWithPnL } from '@pokimate/shared';
 import { formatINR } from '@pokimate/shared';
 import { usePortfolio } from '@/hooks/useInvestments';
@@ -159,7 +159,7 @@ export default function InvestmentsPage() {
         </div>
       ) : holdings.length === 0 ? (
         <EmptyState
-          icon={<TrendingUp size={48} />}
+          icon={<TrendUp size={48} />}
           title="No investments yet"
           description="Import your Groww portfolio to see holdings, P&L, and asset allocation."
           action={

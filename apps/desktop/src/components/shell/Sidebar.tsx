@@ -4,33 +4,45 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Wallet, Landmark, Receipt, PiggyBank,
-  CreditCard, TrendingUp, CheckSquare, Target, Clock,
-  Repeat, Settings, ChevronDown, ChevronRight,
-  PanelLeftClose, PanelLeftOpen,
-} from 'lucide-react';
+  SquaresFour,
+  Wallet,
+  Bank,
+  Receipt,
+  PiggyBank,
+  CreditCard,
+  TrendUp,
+  CheckSquare,
+  Target,
+  Timer,
+  ArrowsClockwise,
+  Gear,
+  CaretDown,
+  CaretRight,
+  ArrowLineLeft,
+  ArrowLineRight,
+} from '@phosphor-icons/react';
 import { APP_VERSION } from '@pokimate/shared';
 import { UserMenu } from './UserMenu';
 import { useAuthStore } from '@/store/auth';
 
 const navMain = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Dashboard', icon: SquaresFour },
 ];
 
 const financeItems = [
-  { href: '/finance/accounts', label: 'Accounts', icon: Landmark },
+  { href: '/finance/accounts',     label: 'Accounts',     icon: Bank },
   { href: '/finance/transactions', label: 'Transactions', icon: Receipt },
-  { href: '/finance/budgets', label: 'Budgets', icon: PiggyBank },
-  { href: '/finance/debts', label: 'Debts', icon: CreditCard },
-  { href: '/finance/investments', label: 'Investments', icon: TrendingUp },
+  { href: '/finance/budgets',      label: 'Budgets',      icon: PiggyBank },
+  { href: '/finance/debts',        label: 'Debts',        icon: CreditCard },
+  { href: '/finance/investments',  label: 'Investments',  icon: TrendUp },
 ];
 
 const navRest = [
-  { href: '/habits', label: 'Habits', icon: CheckSquare },
-  { href: '/goals', label: 'Goals', icon: Target },
-  { href: '/time', label: 'Time', icon: Clock },
-  { href: '/subscriptions', label: 'Subscriptions', icon: Repeat },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/habits',        label: 'Habits',        icon: CheckSquare },
+  { href: '/goals',         label: 'Goals',         icon: Target },
+  { href: '/time',          label: 'Time',          icon: Timer },
+  { href: '/subscriptions', label: 'Subscriptions', icon: ArrowsClockwise },
+  { href: '/settings',      label: 'Settings',      icon: Gear },
 ];
 
 interface SidebarProps {
@@ -54,6 +66,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         background: 'var(--sidebar-background)',
         borderColor: 'var(--border)',
         transition: 'width 0.2s ease',
+        flexShrink: 0,
       }}
     >
       {/* Logo */}
@@ -63,76 +76,40 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       >
         <div
           className="flex items-center justify-center rounded-lg flex-shrink-0"
-          style={{
-            width: 32,
-            height: 32,
-            background: 'var(--primary)',
-            boxShadow: '0 0 12px var(--primary-glow)',
-          }}
+          style={{ width: 32, height: 32, background: 'var(--primary)', boxShadow: '0 0 12px var(--primary-glow)' }}
         >
           <span style={{ fontSize: 16 }}>⚡</span>
         </div>
         {!collapsed && (
-          <>
-            <div className="flex-1 min-w-0">
-              <div className="font-bold text-sm truncate" style={{ color: 'var(--foreground)' }}>
-                PokiMate
-              </div>
-              <div className="text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
-                v{APP_VERSION}
-              </div>
-            </div>
-          </>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-sm truncate" style={{ color: 'var(--foreground)' }}>PokiMate</div>
+            <div className="text-[10px]" style={{ color: 'var(--muted-foreground)' }}>v{APP_VERSION}</div>
+          </div>
         )}
         {onToggleCollapse && (
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="rounded-md p-1.5 flex-shrink-0"
+            className="rounded-md p-1.5 flex-shrink-0 ml-auto"
             style={{ color: 'var(--muted-foreground)' }}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            {collapsed
+              ? <ArrowLineRight size={16} weight="bold" />
+              : <ArrowLineLeft size={16} weight="bold" />}
           </button>
         )}
       </div>
 
-      {/* Navigation */}
+      {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {navMain.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors"
-            style={{
-              background: isActive(href) ? 'var(--primary)' : 'transparent',
-              color: isActive(href) ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
-              boxShadow: isActive(href) ? '0 2px 8px var(--primary-glow)' : 'none',
-            }}
-            onMouseEnter={e => {
-              if (!isActive(href)) {
-                (e.currentTarget as HTMLElement).style.background = 'var(--muted)';
-                (e.currentTarget as HTMLElement).style.color = 'var(--foreground)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!isActive(href)) {
-                (e.currentTarget as HTMLElement).style.background = 'transparent';
-                (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)';
-              }
-            }}
-          >
-            <Icon size={18} className="flex-shrink-0" />
-            {!collapsed && <span className="truncate">{label}</span>}
-          </Link>
+          <NavLink key={href} href={href} label={label} icon={<Icon size={18} weight={isActive(href) ? 'fill' : 'regular'} />} active={isActive(href)} collapsed={collapsed} />
         ))}
 
-        {/* Section label */}
         {!collapsed && (
-          <div className="px-2.5 pt-3 pb-1">
-            <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted-foreground)' }}>
-              Finance
-            </span>
+          <div className="px-2.5 pt-4 pb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted-foreground)' }}>Finance</span>
           </div>
         )}
 
@@ -146,91 +123,77 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               background: isFinanceActive ? 'var(--accent)' : 'transparent',
               color: isFinanceActive ? 'var(--primary)' : 'var(--muted-foreground)',
             }}
+            onMouseEnter={e => { if (!isFinanceActive) { (e.currentTarget as HTMLElement).style.background = 'var(--muted)'; (e.currentTarget as HTMLElement).style.color = 'var(--foreground)'; } }}
+            onMouseLeave={e => { if (!isFinanceActive) { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'; } }}
           >
-            <Wallet size={18} className="flex-shrink-0" />
+            <Wallet size={18} weight={isFinanceActive ? 'fill' : 'regular'} className="flex-shrink-0" />
             {!collapsed && (
               <>
                 <span className="flex-1 text-left">Finance</span>
-                {financeOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {financeOpen ? <CaretDown size={13} weight="bold" /> : <CaretRight size={13} weight="bold" />}
               </>
             )}
           </button>
           {!collapsed && financeOpen && (
             <div className="ml-3 mt-0.5 pl-3 space-y-0.5" style={{ borderLeft: '1px solid var(--border)' }}>
               {financeItems.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors"
-                  style={{
-                    background: isActive(href) ? 'var(--primary)' : 'transparent',
-                    color: isActive(href) ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
-                  }}
-                  onMouseEnter={e => {
-                    if (!isActive(href)) {
-                      (e.currentTarget as HTMLElement).style.background = 'var(--muted)';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--foreground)';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive(href)) {
-                      (e.currentTarget as HTMLElement).style.background = 'transparent';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)';
-                    }
-                  }}
-                >
-                  <Icon size={14} className="flex-shrink-0" />
-                  <span>{label}</span>
-                </Link>
+                <NavLink key={href} href={href} label={label} icon={<Icon size={14} weight={isActive(href) ? 'fill' : 'regular'} />} active={isActive(href)} collapsed={false} small />
               ))}
             </div>
           )}
         </div>
 
-        {/* Section label */}
         {!collapsed && (
-          <div className="px-2.5 pt-3 pb-1">
-            <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted-foreground)' }}>
-              Life
-            </span>
+          <div className="px-2.5 pt-4 pb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted-foreground)' }}>Life</span>
           </div>
         )}
 
         {navRest.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors"
-            style={{
-              background: isActive(href) ? 'var(--primary)' : 'transparent',
-              color: isActive(href) ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
-              boxShadow: isActive(href) ? '0 2px 8px var(--primary-glow)' : 'none',
-            }}
-            onMouseEnter={e => {
-              if (!isActive(href)) {
-                (e.currentTarget as HTMLElement).style.background = 'var(--muted)';
-                (e.currentTarget as HTMLElement).style.color = 'var(--foreground)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!isActive(href)) {
-                (e.currentTarget as HTMLElement).style.background = 'transparent';
-                (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)';
-              }
-            }}
-          >
-            <Icon size={18} className="flex-shrink-0" />
-            {!collapsed && <span className="truncate">{label}</span>}
-          </Link>
+          <NavLink key={href} href={href} label={label} icon={<Icon size={18} weight={isActive(href) ? 'fill' : 'regular'} />} active={isActive(href)} collapsed={collapsed} />
         ))}
       </nav>
 
-      {/* User area */}
+      {/* User */}
       {user && (
         <div className="p-2 border-t" style={{ borderColor: 'var(--border)' }}>
-          <UserMenu collapsed={collapsed} />
+          <UserMenu />
         </div>
       )}
     </aside>
+  );
+}
+
+// ── Shared nav link ───────────────────────────────────────────────────────────
+
+function NavLink({ href, label, icon, active, collapsed, small = false }: {
+  href: string; label: string; icon: React.ReactNode;
+  active: boolean; collapsed: boolean; small?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-3 rounded-lg ${small ? 'px-2.5 py-1.5' : 'px-2.5 py-2'} ${small ? 'text-xs' : 'text-sm'} font-medium transition-colors`}
+      style={{
+        background: active ? 'var(--primary)' : 'transparent',
+        color: active ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
+        boxShadow: active ? '0 2px 8px var(--primary-glow)' : 'none',
+      }}
+      onMouseEnter={e => {
+        if (!active) {
+          (e.currentTarget as HTMLElement).style.background = 'var(--muted)';
+          (e.currentTarget as HTMLElement).style.color = 'var(--foreground)';
+        }
+      }}
+      onMouseLeave={e => {
+        if (!active) {
+          (e.currentTarget as HTMLElement).style.background = 'transparent';
+          (e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)';
+        }
+      }}
+    >
+      <span className="flex-shrink-0">{icon}</span>
+      {!collapsed && <span className="truncate">{label}</span>}
+    </Link>
   );
 }

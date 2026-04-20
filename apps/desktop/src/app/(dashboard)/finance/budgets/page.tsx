@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { LoadingShimmer, EmptyState, MoneyInput } from '@pokimate/ui';
-import { PiggyBank } from 'lucide-react';
+import { PiggyBank } from '@phosphor-icons/react';
 import type { Budget, Category } from '@pokimate/shared';
 import { useBudgets, useCreateBudget, useUpdateBudget } from '@/hooks/useBudgets';
 import { useCategories, useCreateCategory } from '@/hooks/useCategories';

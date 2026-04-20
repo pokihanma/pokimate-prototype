@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Landmark } from 'lucide-react';
+import { Bank } from '@phosphor-icons/react';
 import { MoneyDisplay, MoneyInput, LoadingShimmer, EmptyState, ConfirmDialog } from '@pokimate/ui';
 import type { FinanceAccount } from '@pokimate/shared';
 import { useFinanceAccounts, useCreateAccount, useDeleteAccount } from '@/hooks/useFinanceAccounts';
@@ -250,7 +250,7 @@ export default function AccountsPage() {
         </div>
       ) : activeAccounts.length === 0 ? (
         <EmptyState
-          icon={<Landmark size={48} />}
+          icon={<Bank size={48} />}
           title="No accounts yet"
           description="Add your first bank account, wallet, or credit card to start tracking."
           action={

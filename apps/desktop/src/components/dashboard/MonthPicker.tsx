@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 
 interface MonthPickerProps {
   value: string; // "YYYY-MM"
@@ -33,7 +33,7 @@ export function MonthPicker({ value, onChange }: MonthPickerProps) {
         onClick={() => onChange(addMonths(value, -1))}
         aria-label="Previous month"
       >
-        <ChevronLeft size={14} />
+        <CaretLeft size={14} />
       </button>
       <span className="min-w-[130px] text-center font-medium">{formatDisplay(value)}</span>
       <button
@@ -43,7 +43,7 @@ export function MonthPicker({ value, onChange }: MonthPickerProps) {
         disabled={isCurrentMonth}
         aria-label="Next month"
       >
-        <ChevronRight size={14} />
+        <CaretRight size={14} />
       </button>
     </div>
   );

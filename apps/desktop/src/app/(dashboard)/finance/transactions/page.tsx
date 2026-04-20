@@ -3,7 +3,7 @@
 import * as React from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable, MoneyDisplay, LoadingShimmer, EmptyState, ConfirmDialog } from '@pokimate/ui';
-import { Wallet } from 'lucide-react';
+import { Wallet } from '@phosphor-icons/react';
 import type { FinanceTransaction, Category, FinanceAccount } from '@pokimate/shared';
 import { useTransactions, useDeleteTransaction } from '@/hooks/useTransactions';
 import { useCategories } from '@/hooks/useCategories';

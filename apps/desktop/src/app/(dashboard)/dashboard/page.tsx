@@ -13,12 +13,12 @@ import {
 } from 'recharts';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
-  TrendingUp, TrendingDown,
-  DollarSign, CreditCard, Target, Activity, BarChart2, ArrowDownCircle,
-  PlusCircle, CheckCircle, Timer, Upload, RefreshCw,
-  AlertTriangle, Circle, CheckSquare,
+  TrendUp, TrendDown,
+  CurrencyDollar, CreditCard, Target, Activity, ChartBar, ArrowCircleDown,
+  PlusCircle, CheckCircle, Timer, UploadSimple, ArrowsClockwise,
+  Warning, Circle, CheckSquare,
   Clock,
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import { KPICard, StatRing, LoadingShimmer, EmptyState, DataTable } from '@pokimate/ui';
 import { formatINR } from '@pokimate/shared';
 import { MonthPicker } from '@/components/dashboard/MonthPicker';
@@ -203,7 +203,7 @@ export default function DashboardPage() {
           className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium"
           style={{ background: 'var(--chart-3)', color: '#fff' }}
         >
-          <AlertTriangle size={16} />
+          <Warning size={16} />
           <span>
             {conflicts_count} sync conflict{conflicts_count > 1 ? 's' : ''} need your attention.
           </span>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
               style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
               title="Bank Import coming in Phase 4"
             >
-              <Upload size={22} style={{ color: 'var(--chart-4)' }} />
+              <UploadSimple size={22} style={{ color: 'var(--chart-4)' }} />
               Import Bank
             </button>
             <button
@@ -312,7 +312,7 @@ export default function DashboardPage() {
               className="flex flex-col items-center gap-1.5 rounded-xl border px-4 py-3 text-xs font-medium hover:bg-muted transition-colors w-28"
               style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
             >
-              <RefreshCw size={22} style={{ color: 'var(--chart-5)' }} />
+              <ArrowsClockwise size={22} style={{ color: 'var(--chart-5)' }} />
               Sync
             </button>
           </div>
@@ -324,19 +324,19 @@ export default function DashboardPage() {
         <KPICard
           title="Net Worth"
           value={rupees(kpis.net_worth_minor)}
-          icon={<DollarSign size={18} />}
+          icon={<CurrencyDollar size={18} />}
           color="var(--chart-1)"
         />
         <KPICard
           title="Monthly Income"
           value={rupees(kpis.income_minor)}
-          icon={<TrendingUp size={18} />}
+          icon={<TrendUp size={18} />}
           color="var(--chart-2)"
         />
         <KPICard
           title="Monthly Expense"
           value={rupees(kpis.expense_minor)}
-          icon={<TrendingDown size={18} />}
+          icon={<TrendDown size={18} />}
           color="var(--chart-4)"
         />
         <KPICard
@@ -350,7 +350,7 @@ export default function DashboardPage() {
         <KPICard
           title="Investments"
           value={rupees(kpis.total_investments_minor)}
-          icon={<BarChart2 size={18} />}
+          icon={<ChartBar size={18} />}
           color="var(--chart-5)"
         />
         <KPICard
@@ -365,7 +365,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-3 gap-4">
         <SectionCard title="Net Worth (12 months)" className="col-span-2">
           {net_worth_trend.length === 0 ? (
-            <EmptyState icon={<BarChart2 size={32} />} title="No data" description="Add transactions to see your net worth trend." />
+            <EmptyState icon={<ChartBar size={32} />} title="No data" description="Add transactions to see your net worth trend." />
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={net_worth_trend} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
@@ -450,7 +450,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 gap-4">
         <SectionCard title="Income vs Expense (6 months)">
           {cashflow_trend.every((m) => m.income_minor === 0 && m.expense_minor === 0) ? (
-            <EmptyState icon={<BarChart2 size={32} />} title="No data" description="No transactions in the past 6 months." />
+            <EmptyState icon={<ChartBar size={32} />} title="No data" description="No transactions in the past 6 months." />
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={cashflow_trend} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
@@ -619,7 +619,7 @@ export default function DashboardPage() {
       {/* ── Row 5: Recent transactions (full width) ─────────────────────────── */}
       <SectionCard title="Recent Transactions">
         {recent_transactions.length === 0 ? (
-          <EmptyState icon={<ArrowDownCircle size={32} />} title="No transactions" description="Add your first transaction to get started." />
+          <EmptyState icon={<ArrowCircleDown size={32} />} title="No transactions" description="Add your first transaction to get started." />
         ) : (
           <DataTable<DashboardTransaction>
             columns={txnColumns}

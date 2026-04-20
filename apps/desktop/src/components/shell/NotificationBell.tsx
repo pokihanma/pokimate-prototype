@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell } from 'lucide-react';
+import { Bell } from '@phosphor-icons/react';
 
 interface NotificationBellProps {
   count?: number;

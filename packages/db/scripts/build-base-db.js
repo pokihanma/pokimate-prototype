@@ -17,11 +17,13 @@ async function main() {
 
   const sql001 = fs.readFileSync(path.join(migrationsDir, '001_initial.sql'), 'utf8');
   const sql002 = fs.readFileSync(path.join(migrationsDir, '002_seed.sql'), 'utf8');
+  const sql003 = fs.readFileSync(path.join(migrationsDir, '003_improvements.sql'), 'utf8');
 
   db.run('PRAGMA journal_mode=WAL;');
   db.run('PRAGMA foreign_keys=ON;');
   db.exec(sql001);
   db.exec(sql002);
+  db.exec(sql003);
 
   const dir = path.dirname(outPath);
   if (!fs.existsSync(dir)) {

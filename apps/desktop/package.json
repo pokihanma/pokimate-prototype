@@ -10,6 +10,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@pokimate/shared": "workspace:*",
     "@pokimate/ui": "workspace:*",
     "@tanstack/react-query": "^5.90.21",
