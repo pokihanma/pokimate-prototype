@@ -41,15 +41,64 @@ pub fn init<M: Manager<R>, R: tauri::Runtime>(app: &M) -> Result<DbState, String
         std::fs::copy(&src, &db_path).map_err(|e| format!("copy base.db: {}", e))?;
     }
 
-    // Apply WAL pragmas on a temporary connection to ensure they're set for the file
+    // Apply WAL pragmas and run incremental migrations
     let conn = Connection::open(&db_path).map_err(|e| format!("open db: {}", e))?;
     for pragma in WAL_PRAGMAS {
         conn.execute_batch(pragma)
             .map_err(|e| format!("pragma {}: {}", pragma, e))?;
     }
+    run_migrations(&conn).map_err(|e| format!("migration: {}", e))?;
     drop(conn);
 
     Ok(DbState { db_path })
+}
+
+/// Apply incremental schema migrations using PRAGMA user_version as the version counter.
+/// Each migration block is idempotent: ADD COLUMN IF NOT EXISTS via column existence check,
+/// CREATE INDEX IF NOT EXISTS is safe to repeat.
+fn run_migrations(conn: &Connection) -> Result<(), rusqlite::Error> {
+    let version: i32 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
+
+    if version < 3 {
+        // Migration 003: indexes + goals reward/reminder + habits reminder_enabled
+        conn.execute_batch("
+            CREATE INDEX IF NOT EXISTS idx_habits_user        ON habits(user_id);
+            CREATE INDEX IF NOT EXISTS idx_goals_user         ON goals(user_id);
+            CREATE INDEX IF NOT EXISTS idx_time_entries_user  ON time_entries(user_id);
+            CREATE INDEX IF NOT EXISTS idx_budgets_user       ON budgets(user_id);
+            CREATE INDEX IF NOT EXISTS idx_debts_user         ON debts(user_id);
+            CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+            CREATE INDEX IF NOT EXISTS idx_accounts_user      ON finance_accounts(user_id);
+            CREATE INDEX IF NOT EXISTS idx_holdings_user      ON inv_holdings(user_id);
+        ")?;
+        // ALTER TABLE ignores IF NOT EXISTS — use column existence check instead
+        let goals_cols: Vec<String> = {
+            let mut stmt = conn.prepare("PRAGMA table_info(goals)")?;
+            stmt.query_map([], |r| r.get::<_, String>(1))?.filter_map(|r| r.ok()).collect()
+        };
+        if !goals_cols.iter().any(|c| c == "reward_title") {
+            conn.execute_batch("ALTER TABLE goals ADD COLUMN reward_title TEXT;")?;
+        }
+        if !goals_cols.iter().any(|c| c == "reward_emoji") {
+            conn.execute_batch("ALTER TABLE goals ADD COLUMN reward_emoji TEXT;")?;
+        }
+        if !goals_cols.iter().any(|c| c == "reminder_date") {
+            conn.execute_batch("ALTER TABLE goals ADD COLUMN reminder_date TEXT;")?;
+        }
+        if !goals_cols.iter().any(|c| c == "reminder_time") {
+            conn.execute_batch("ALTER TABLE goals ADD COLUMN reminder_time TEXT DEFAULT '09:00';")?;
+        }
+        let habits_cols: Vec<String> = {
+            let mut stmt = conn.prepare("PRAGMA table_info(habits)")?;
+            stmt.query_map([], |r| r.get::<_, String>(1))?.filter_map(|r| r.ok()).collect()
+        };
+        if !habits_cols.iter().any(|c| c == "reminder_enabled") {
+            conn.execute_batch("ALTER TABLE habits ADD COLUMN reminder_enabled INTEGER NOT NULL DEFAULT 0;")?;
+        }
+        conn.execute_batch("PRAGMA user_version = 3;")?;
+    }
+
+    Ok(())
 }
 
 /// Open a new connection with WAL pragmas. Use in every command.

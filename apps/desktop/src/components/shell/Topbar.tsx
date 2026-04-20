@@ -61,6 +61,7 @@ export function Topbar() {
         <SyncStatusBadge />
         <NotificationBell />
         <ThemeToggle />
+        <UserMenu />
       </div>
     </header>
   );
