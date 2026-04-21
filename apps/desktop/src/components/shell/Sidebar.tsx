@@ -22,7 +22,6 @@ import {
   ArrowLineRight,
 } from '@phosphor-icons/react';
 import { APP_VERSION } from '@pokimate/shared';
-import { UserMenu } from './UserMenu';
 import { useAuthStore } from '@/store/auth';
 
 const navMain = [
@@ -154,10 +153,21 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         ))}
       </nav>
 
-      {/* User */}
-      {user && (
-        <div className="p-2 border-t" style={{ borderColor: 'var(--border)' }}>
-          <UserMenu />
+      {/* User info (logout is in topbar) */}
+      {user && !collapsed && (
+        <div className="p-3 border-t" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex items-center gap-2 px-1">
+            <div
+              className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+              style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
+            >
+              {(user.display_name ?? user.username).slice(0, 1).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold truncate" style={{ color: 'var(--foreground)' }}>{user.display_name ?? user.username}</p>
+              <p className="text-[10px] truncate" style={{ color: 'var(--muted-foreground)' }}>{user.role}</p>
+            </div>
+          </div>
         </div>
       )}
     </aside>

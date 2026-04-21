@@ -32,37 +32,37 @@
 
 /* ── Light Theme ──────────────────────────────────────────────────────────── */
 :root {
-  --background: #f8f9fc;
+  --background: #f2f4fb;
   --foreground: #0d0f1a;
   --card: #ffffff;
   --card-foreground: #0d0f1a;
-  --border: #e8eaf0;
+  --border: #dde1ec;
   --primary: #4f46e5;
   --primary-foreground: #ffffff;
-  --primary-glow: rgba(79, 70, 229, 0.15);
-  --secondary: #f1f3f9;
+  --primary-glow: rgba(79, 70, 229, 0.18);
+  --secondary: #e8ecf7;
   --secondary-foreground: #374151;
-  --muted: #f1f3f9;
+  --muted: #eaecf5;
   --muted-foreground: #6b7280;
   --accent: #eef2ff;
   --accent-foreground: #4f46e5;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --ring: #4f46e5;
-  --sidebar-background: #ffffff;
+  --sidebar-background: #e8ecf6;
   --sidebar-foreground: #0d0f1a;
-  --input: #e8eaf0;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --info: #3b82f6;
+  --input: #ffffff;
+  --success: #059669;
+  --warning: #d97706;
+  --info: #2563eb;
   --chart-1: #4f46e5;
-  --chart-2: #10b981;
-  --chart-3: #f59e0b;
+  --chart-2: #059669;
+  --chart-3: #d97706;
   --chart-4: #ef4444;
-  --chart-5: #8b5cf6;
+  --chart-5: #7c3aed;
   --bg-overlay: rgba(0, 0, 0, 0.04);
-  --card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --card-shadow-hover: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --card-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
+  --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
 }
 
 /* ── Dark Theme (Default — CRED/Zerodha style premium dark) ─────────────── */
